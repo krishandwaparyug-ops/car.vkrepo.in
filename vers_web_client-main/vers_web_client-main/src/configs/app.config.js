@@ -1,0 +1,9 @@
+const appConfig = {
+    // apiPrefix: 'http://localhost:5002/api/',
+    apiPrefix: 'https://api.vkrepo.in/api/',
+    webhookPrefix: 'https://webhooks.vkrepo.in/webhooks/',
+    authenticatedEntryPath: '/dashboard',
+    unAuthenticatedEntryPath: '/sign-in',
+}
+
+export default appConfig
