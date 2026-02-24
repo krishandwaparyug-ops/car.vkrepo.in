@@ -1,19 +1,8 @@
 const mongoose = require("mongoose");
-const URL =
-  process.env.MONGO_URL +
-  process.env.MONGO_HOST +
-  "/" +
-  process.env.MONGO_DB_NAME;
+require("dotenv").config();
 
-mongoose.connect(URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB Connected Successfully"))
+  .catch((err) => console.log("Mongo Error:", err));
 
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error: "));
-db.once("open", function () {
-  console.log("Connected successfully");
-});
-
-module.exports = db;
+module.exports = mongoose.connection;

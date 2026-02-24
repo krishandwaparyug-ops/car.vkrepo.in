@@ -106,7 +106,7 @@ const Login = () => {
     <div className="flex justify-center items-center h-full w-full">
       <div className=" p-4 w-96 h-fit rounded-sm bg-gray-200">
         <h3 className="text-center mb-3 font-semibold text-xl text-gray-800">
-          WELCOME TO <span className="text-orange-500">VK ENTERPRISES</span>
+          WELCOME TO <span className="text-orange-500">Kartika Associates</span>
         </h3>
         <h3 className="text-center mb-2 font-semibold text-md text-green-500 capitalize">
           {type} based login
@@ -196,9 +196,8 @@ const Login = () => {
           </form>
         )}
         <div
-          className={`flex mt-5 ${
-            type === "OTP" && isOTPSend ? "justify-between" : "justify-center"
-          }`}
+          className={`flex mt-5 ${type === "OTP" && isOTPSend ? "justify-between" : "justify-center"
+            }`}
         >
           <p className="text-orange-500">
             Login by{" "}

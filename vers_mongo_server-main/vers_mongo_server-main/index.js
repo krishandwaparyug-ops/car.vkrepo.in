@@ -11,6 +11,7 @@ app.use(
   cors({
     origin: [
       "https://car.vkrepo.in",
+     "http://localhost:3000"
     ],
   })
 );

@@ -136,7 +136,7 @@ const Dashboard = () => {
         </div>
 
         <h1 className="text-3xl text-purple-700 mt-5 text-center font-semibold">
-          VK ENTERPRISE
+          Kartika Associates
         </h1>
         <h1 className="text-xl text-gray-800 mt-2 text-center font-medium">
           Design & Developed By{" "}
