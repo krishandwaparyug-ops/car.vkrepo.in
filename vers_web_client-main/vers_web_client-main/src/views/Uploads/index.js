@@ -22,6 +22,7 @@ const Uploads = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [headerOptions, setHeaderOptions] = useState([]);
   const [desc, setDesc] = useState(null);
+  const [rawFile, setRawFile] = useState(null);
 
   const parentRef = React.useRef();
 
@@ -92,6 +93,7 @@ const Uploads = () => {
           setDefaultFileHeader={setDefaultFileHeader}
           setFileData={setFileData}
           setVerifiedValidData={setVerifiedValidData}
+          setRawFile={setRawFile}
         />
         {/* <CountButton label="Opening" data={`${count}`} /> */}
         <CountButton
@@ -120,6 +122,7 @@ const Uploads = () => {
           setVerifiedValidData={setVerifiedValidData}
           header={fileData[0]}
           setDesc={setDesc}
+          rawFile={rawFile}
         />
         <p style={{ padding: 0, margin: 0 }}>{desc}</p>
       </div>

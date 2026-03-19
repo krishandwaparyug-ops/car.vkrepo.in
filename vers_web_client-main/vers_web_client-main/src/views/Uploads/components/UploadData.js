@@ -78,17 +78,25 @@ const UploadData = (props) => {
           ?.join("_")
       );
 
-      // Formatting the payload optimally: mapping to an array of arrays to physically compress the file size parameter
-      const payloadObj = {
-        headers: formattedHeaders,
-        data: verifiedValidData
-      };
-
-      const jsonFile = JSON.stringify(payloadObj);
       const formData = new FormData();
-      const jsonBlob = new Blob([jsonFile], { type: "application/json" });
-      formData.append("csv_file", jsonBlob, "data.json");
       formData.append("branchId", selectedBranch);
+      formData.append("mappedHeaders", JSON.stringify(formattedHeaders));
+
+      // OPTIMIZATION: Send the raw file directly instead of stringifying to JSON
+      if (props.rawFile) {
+        console.log(`[Upload] Sending raw file directly: ${props.rawFile.name}`);
+        formData.append("csv_file", props.rawFile);
+      } else {
+        // Fallback to legacy JSON blob if rawFile is missing (very rare)
+        console.log(`[Upload] Falling back to JSON blob`);
+        const payloadObj = {
+          headers: formattedHeaders,
+          data: verifiedValidData
+        };
+        const jsonFile = JSON.stringify(payloadObj);
+        const jsonBlob = new Blob([jsonFile], { type: "application/json" });
+        formData.append("csv_file", jsonBlob, "data.json");
+      }
 
       const res = await BaseService.post(`v1/vehicle/admin/insert`, formData);
       

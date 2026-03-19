@@ -7,6 +7,7 @@ const FileReader = (props) => {
     setDefaultFileHeader,
     setVerifiedValidData,
     setLoading,
+    setRawFile,
   } = props;
 
   const handleFileChange = (e) => {
@@ -17,6 +18,7 @@ const FileReader = (props) => {
     setFileData?.([]);
     setVerifiedValidData?.([]);
     setLoading?.(true);
+    setRawFile?.(file);
 
     const fileName = file.name.toLowerCase();
 
