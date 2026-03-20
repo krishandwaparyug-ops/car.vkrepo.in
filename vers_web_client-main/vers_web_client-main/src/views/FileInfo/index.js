@@ -10,60 +10,56 @@ import { toast } from "react-toastify";
 const notify = (message, type = "error") => toast[type](message);
 injectReducer("fileInfo", fileInfoReducer);
 
-const handleFileDownload = async (_id, setIsDownloading) => {
-  notify("Downloading start", "info");
-  setIsDownloading?.(true);
+const handleFileDownload = (file, token, setIsDownloading) => {
+  const { _id, file_name } = file;
   
-  try {
-    const response = await BaseService({
-      url: `${appConfig.webhookPrefix}file/download/${_id}`,
-      method: "GET",
-      responseType: "blob",
-    });
-
-    if (response) {
-      console.log(`[FileDownload] Successfully fetched blob for ${_id}`);
-      const blob = new Blob([response.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${_id}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      setIsDownloading?.(false);
-      notify("Download successful", "success");
-    } else {
-      throw new Error(`Unexpected status code: ${response.status}`);
-    }
-  } catch (error) {
-    console.error("[FileDownload] Download error:", error.message || error);
-    setIsDownloading?.(false);
-    notify(`Download failed: ${error.message || ""}`);
+  if (!token) {
+    notify("Authentication error. Please sign in again.");
+    return;
   }
+
+  notify(`Starting download`, "info");
+  setIsDownloading?.(true);
+
+
+  // Directly trigger browser-native download to avoid blob corruption
+  const downloadUrl = `${appConfig.apiPrefix}v1/file/info/download/${_id}?token=${token}`;
+  
+  const link = document.createElement("a");
+  link.href = downloadUrl;
+  link.setAttribute("download", file_name);
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up
+  setTimeout(() => {
+    document.body.removeChild(link);
+    setIsDownloading?.(false);
+  }, 500);
 };
+
 
 const FileInfo = () => {
   const dispatch = useDispatch();
   const [isDownloading, setIsDownloading] = useState(false);
   const fileInfo = useSelector((state) => state.fileInfo.data.fileInfo);
+  const token = useSelector((state) => state.auth.session.token);
 
   useEffect(() => {
     if (fileInfo.length === 0) {
       dispatch(allFileInfo());
     }
   }, []);
+  
   return (
     <div className="grid grid-cols-5 gap-2">
       {fileInfo.map((file) => {
         return (
           <Statistic
+            key={file._id}
             data={file}
-            handleFileDownload={handleFileDownload}
+            handleFileDownload={(data, setIsDownloading) => handleFileDownload(data, token, setIsDownloading)}
             setIsDownloading={setIsDownloading}
             isDownloading={isDownloading}
           />

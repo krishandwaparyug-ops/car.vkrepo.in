@@ -82,12 +82,12 @@ const UploadData = (props) => {
       formData.append("branchId", selectedBranch);
       formData.append("mappedHeaders", JSON.stringify(formattedHeaders));
 
-      // OPTIMIZATION: Send the raw file directly instead of stringifying to JSON
+      // OPTIMIZATION: Send the raw file directly. Instant start!
       if (props.rawFile) {
-        console.log(`[Upload] Sending raw file directly: ${props.rawFile.name}`);
+        console.log(`[Upload] Sending raw file directly: ${props.rawFile.name} (${(props.rawFile.size / 1024 / 1024).toFixed(2)} MB)`);
         formData.append("csv_file", props.rawFile);
       } else {
-        // Fallback to legacy JSON blob if rawFile is missing (very rare)
+        // Fallback to legacy JSON blob (very rare)
         console.log(`[Upload] Falling back to JSON blob`);
         const payloadObj = {
           headers: formattedHeaders,

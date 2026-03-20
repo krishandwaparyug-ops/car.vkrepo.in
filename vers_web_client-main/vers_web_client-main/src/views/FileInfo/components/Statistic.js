@@ -13,13 +13,13 @@ const Statistic = ({
         isDownloading ? "cursor-wait" : "cursor-pointer"
       }`}
       onClick={() => {
-        !isDownloading && handleFileDownload(data._id, setIsDownloading);
+        !isDownloading && handleFileDownload(data, setIsDownloading);
       }}
     >
       <div className="h-1/2 flex gap-1 justify-between mb-3">
         <div className="h-full">
           <p className="text-md font-semibold">{data.file_name}</p>
-          <p className="text-sm">{data.bankDetails.bank_name}</p>
+          <p className="text-sm">{data.bankDetails?.bank_name || 'N/A'}</p>
         </div>
         <BsFiletypeCsv className="h-full text-4xl" />
       </div>

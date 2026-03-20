@@ -31,19 +31,21 @@ const BranchSelect = (props) => {
 
   return (
     <div style={{ width: "500px" }} className="h-full">
-      <Select
-        className="text-sm pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm"
-        options={data}
-        onChange={(values) => setSelectedBranch?.(values?.[0]?.value || null)}
-        placeholder="Search & select branch"
-        style={{
-          minHeight: "32px",
-          width: "100%",
-          fontSize:'16.5px',
-          outline: "none",
-          border: "none",
-        }}
-      />
+      {data.length > 0 && (
+        <Select
+          className="text-sm pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm"
+          options={data}
+          onChange={(values) => setSelectedBranch?.(values?.[0]?.value || null)}
+          placeholder="Search & select branch"
+          style={{
+            minHeight: "32px",
+            width: "100%",
+            fontSize: '16.5px',
+            outline: "none",
+            border: "none",
+          }}
+        />
+      )}
     </div>
   );
 };
