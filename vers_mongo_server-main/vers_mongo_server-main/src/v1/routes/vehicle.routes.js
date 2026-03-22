@@ -11,11 +11,11 @@ const {
 } = require("../controllers/vehicle.controllers/get.controller");
 const csvUpload = require("../middlewares/upload.middleware/csv.upload.middleware");
 const {
-  deleteBulkVehiclesByBranchId,
   deleteVehiclesByVehicleId,
 } = require("../controllers/vehicle.controllers/delete.controller");
 const {
   newBulkVehicleRegistration,
+  registerVehicleChunk,
 } = require("../controllers/vehicle.controllers/register.controller");
 const {
   registerNewDetailsWhenUserSearch,
@@ -36,8 +36,13 @@ const router = express.Router();
 router.post(
   "/admin/insert",
   csvUpload.single("csv_file"),
-  deleteBulkVehiclesByBranchId,
   newBulkVehicleRegistration
+);
+
+router.post(
+  "/admin/insert/chunk",
+  tokenVerifier,
+  registerVehicleChunk
 );
 
 router.post(

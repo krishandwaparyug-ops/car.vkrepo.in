@@ -18,8 +18,8 @@ app.use(
   })
 );
 
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
+app.use(bodyParser.json({ limit: "100mb" }));
 app.use('/api', express.static(path.join(__dirname, "/public")))
 
 app.use(`/api/v1/auth`, require("./src/v1/routes/auth.routes"));
@@ -47,6 +47,12 @@ const port = process.env.PORT || 5002;
 const server = app.listen(port, () => {
   console.log(`Hello world app listening on port ${port}!`);
 });
+
+// INCREASE TIMEOUTS for massive bulk uploads (20 minutes)
+server.timeout = 1200000;
+server.requestTimeout = 1200000;
+server.headersTimeout = 1200000;
+server.keepAliveTimeout = 60000; // 1 minute keep-alive
 
 // Handle port already in use gracefully
 server.on('error', (err) => {

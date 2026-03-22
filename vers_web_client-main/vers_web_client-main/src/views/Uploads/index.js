@@ -126,6 +126,7 @@ const Uploads = () => {
         />
         <p style={{ padding: 0, margin: 0 }}>{desc}</p>
       </div>
+
       <div
         ref={parentRef}
         style={{

@@ -65,57 +65,62 @@ const UploadData = (props) => {
     }
     await updateHeader(newUpdateHeaderToServer);
     
-    setDesc?.("Processing Data...");
+    setDesc?.("Uploading Data... Starting...");
     try {
-      const formattedHeaders = header.map((value) =>
-        value
-          ?.toString()
-          ?.toLowerCase()
-          ?.replace(/[^a-zA-Z0-9\s]/g, "")
-          ?.replace(/\s+/g, " ")
-          ?.trim()
-          ?.split(" ")
-          ?.join("_")
-      );
+      const uploadDateObj = new Date();
+      const processLocalRow = (row) => {
+        let newRow = { branch_id: selectedBranch, is_released: false, createdAt: uploadDateObj, updatedAt: uploadDateObj };
+        header.forEach((h, idx) => {
+          const key = headerOptionsOfServer[idx] || h.toString().toLowerCase().replace(/[^a-z0-9]/g, "_");
+          const val = row[h] || row[idx];
+          if (val) {
+            if (key === "rc_no" || key === "chassis_no") {
+              const clean = String(val).trim().replace(/[^a-zA-Z0-9]/g, "");
+              const digits = clean.replace(/\D/g, "");
+              newRow[key] = clean;
+              newRow[key === "rc_no" ? "last_four_digit_rc" : "last_four_digit_chassis"] = String(parseInt(digits.slice(-4), 10) || 0);
+            } else newRow[key] = val;
+          }
+        });
+        return newRow;
+      };
 
-      const formData = new FormData();
-      formData.append("branchId", selectedBranch);
-      formData.append("mappedHeaders", JSON.stringify(formattedHeaders));
+      const finalData = verifiedValidData.map(processLocalRow);
+      const CHUNK_SIZE = 5000;
+      const chunks = [];
+      for (let i = 0; i < finalData.length; i += CHUNK_SIZE) chunks.push(finalData.slice(i, i + CHUNK_SIZE));
 
-      // OPTIMIZATION: Send the raw file directly. Instant start!
-      if (props.rawFile) {
-        console.log(`[Upload] Sending raw file directly: ${props.rawFile.name} (${(props.rawFile.size / 1024 / 1024).toFixed(2)} MB)`);
-        formData.append("csv_file", props.rawFile);
-      } else {
-        // Fallback to legacy JSON blob (very rare)
-        console.log(`[Upload] Falling back to JSON blob`);
-        const payloadObj = {
-          headers: formattedHeaders,
-          data: verifiedValidData
-        };
-        const jsonFile = JSON.stringify(payloadObj);
-        const jsonBlob = new Blob([jsonFile], { type: "application/json" });
-        formData.append("csv_file", jsonBlob, "data.json");
+      // First batch
+      setDesc?.("Uploading Data... (0%)");
+      const firstRes = await BaseService.post(`v1/vehicle/admin/insert/chunk`, { branchId: selectedBranch, data: chunks[0], isFirstChunk: true });
+      if (firstRes.status !== 200) throw new Error("Chunk failed");
+
+      // Parallel batches
+      if (chunks.length > 1) {
+         let completed = 1;
+         const remaining = chunks.slice(1);
+         const CONCURRENCY = 8; // Boost speed
+         for (let i = 0; i < remaining.length; i += CONCURRENCY) {
+            const group = remaining.slice(i, i + CONCURRENCY);
+            await Promise.all(group.map(async (chunk) => {
+               await BaseService.post(`v1/vehicle/admin/insert/chunk`, { branchId: selectedBranch, data: chunk, isFirstChunk: false });
+               completed++;
+               setDesc?.(`Uploading Data... (${Math.round((completed/chunks.length)*100)}%)`);
+            }));
+         }
       }
 
-      const res = await BaseService.post(`v1/vehicle/admin/insert`, formData);
-      
-      if (res.status === 200) {
-        setDesc?.("");
-        notify("Upload Successful", "success");
-        setFileData?.([]);
-        setVerifiedValidData?.([]);
-        fetchHeader();
-      } else {
-        notify("Failed");
-      }
-      setLoading(false);
-    } catch (error) {
-      console.log(error);
-      notify("Failed");
       setDesc?.("");
-      setLoading(false);
+      notify("Upload Successfully", "success");
+      setFileData?.([]);
+      setVerifiedValidData?.([]);
+      fetchHeader();
+    } catch (error) {
+      console.error("[Upload] Error:", error);
+      notify("Upload Failed - " + (error.response?.data?.message || "Check Connection"));
+      setDesc?.("");
     }
+    setLoading(false);
   };
 
   return (
