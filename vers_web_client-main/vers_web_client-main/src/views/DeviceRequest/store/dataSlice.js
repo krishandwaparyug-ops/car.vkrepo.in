@@ -3,12 +3,37 @@ import {
   apiGetAllDeviceRequest,
   apiUpdateDeviceRequest,
 } from "../../../services/DeviceRequestService";
+import { apiAllUsers } from "../../../services/UserService";
 
 export const getAllDeviceRequest = createAsyncThunk(
   "device/data/list",
   async (data) => {
     try {
       const response = await apiGetAllDeviceRequest(data);
+
+      if (response?.status === 200 && Array.isArray(response?.data?.data)) {
+        if (response.data.data.length > 0) {
+          return response;
+        }
+
+        // Fallback so web can still show device ids if API payload differs.
+        const usersResponse = await apiAllUsers();
+        if (usersResponse?.status === 200 && Array.isArray(usersResponse?.data?.data)) {
+          const usersWithDeviceIds = usersResponse.data.data.filter(
+            (user) =>
+              (user?.requestDeviceId && String(user.requestDeviceId).trim() !== "") ||
+              (user?.deviceId && String(user.deviceId).trim() !== "")
+          );
+          return {
+            ...response,
+            data: {
+              ...response.data,
+              data: usersWithDeviceIds,
+            },
+          };
+        }
+      }
+
       return response;
     } catch (error) {
       return error?.response || error.toString();
@@ -62,7 +87,5 @@ const dataSlice = createSlice({
     });
   },
 });
-
-export const {} = dataSlice.actions;
 
 export default dataSlice.reducer;

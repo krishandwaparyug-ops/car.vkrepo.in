@@ -30,11 +30,19 @@ const DeviceRequest = () => {
   const filterUsers = useMemo(() => {
     return data?.filter(
       (users) =>
-        users?.name.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
+        users?.name?.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
         users?.mobile
           ?.toString()
           .toLowerCase()
-          .startsWith(searchQuery.toLowerCase())
+          .startsWith(searchQuery.toLowerCase()) ||
+        users?.requestDeviceId
+          ?.toString()
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        users?.deviceId
+          ?.toString()
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
     );
   }, [searchQuery, data]);
 

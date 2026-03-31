@@ -1,5 +1,6 @@
 const responseError = require("../../../../errors/responseError");
 const Vehicle = require("../../../../models/vehicle.model");
+const Branch = require("../../../../models/branch.model");
 const checkObjectId = require("../../utils/checkObjectId");
 const mongoose = require("mongoose");
 const fs = require("fs");
@@ -27,7 +28,7 @@ const getVehiclesByAdminOnSearch = async (req, res, next) => {
     if (type === "chassis_no") searchType = "last_four_digit_chassis";
 
     const matchQuery = {
-      [searchType]: { $in: [parseInt(searchTerm), String(parseInt(searchTerm))] },
+      [searchType]: String(parseInt(searchTerm)),
     };
 
     if (branchId) {
@@ -36,7 +37,7 @@ const getVehiclesByAdminOnSearch = async (req, res, next) => {
 
     const vehicles = await Vehicle.find(matchQuery)
       .select("_id rc_no mek_and_model chassis_no")
-      .sort({ [type]: 1 })
+      .sort({ _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
@@ -62,10 +63,10 @@ const getVehiclesByUserOnSearch = async (req, res, next) => {
     if (type === "chassis_no") searchType = "last_four_digit_chassis";
 
     const vehicles = await Vehicle.find({
-      [searchType]: { $in: [parseInt(query), String(parseInt(query))] },
+      [searchType]: String(parseInt(query)),
     })
       .select("_id rc_no chassis_no mek_and_model")
-      .sort({ [type]: 1 })
+      .sort({ _id: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
@@ -80,72 +81,102 @@ const getVehiclesByUserOnSearch = async (req, res, next) => {
 const getDuplicateRecordsByRcNumberOrChassisNo = async (req, res, next) => {
   try {
     const { type = "rc_no", query = "" } = req.body;
-    if (!query) {
+
+    if (!["rc_no", "chassis_no"].includes(type)) {
+      return next(responseError(406, "Invalid type"));
+    }
+
+    const normalizedQuery = String(query || "")?.trim()?.toUpperCase();
+
+    if (!normalizedQuery) {
       return res.status(200).json({ data: {} });
     }
-    const response = await Vehicle.aggregate([
+
+    const vehicles = await Vehicle.find({ [type]: normalizedQuery })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    if (vehicles.length === 0) {
+      return res.status(200).json({ data: {} });
+    }
+
+    const uniqueBranchIds = [
+      ...new Set(
+        vehicles
+          .map((item) => item?.branch_id?.toString())
+          .filter(Boolean)
+      ),
+    ];
+
+    // UI uses one vehicle row per branch, so keep only the latest one per branch.
+    const latestVehicleByBranch = new Map();
+    for (const item of vehicles) {
+      const key = item?.branch_id?.toString();
+      if (!key || latestVehicleByBranch.has(key)) {
+        continue;
+      }
+      latestVehicleByBranch.set(key, item);
+    }
+    const vehiclesForResponse = Array.from(latestVehicleByBranch.values());
+
+    const branchObjectIds = uniqueBranchIds.map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
+
+    const branches = await Branch.aggregate([
       {
         $match: {
-          [type]: query,
-        },
-      },
-      {
-        $group: {
-          _id: { [type]: `$${type}` },
-          branch_id: { $addToSet: "$branch_id" },
-          data_count: { $sum: 1 },
-          branch_count: { $sum: 1 },
-          duplicates: { $push: "$_id" },
-        },
-      },
-      {
-        $match: {
-          data_count: { $gt: 0 },
-          branch_count: { $gt: 0 },
-        },
-      },
-      {
-        $addFields: {
-          convertedBranchIds: {
-            $map: {
-              input: "$branch_id",
-              as: "branchId",
-              in: { $toObjectId: "$$branchId" },
-            },
-          },
+          _id: { $in: branchObjectIds },
         },
       },
       {
         $lookup: {
-          from: "branches",
-          localField: "convertedBranchIds",
+          from: "head_offices",
+          localField: "head_office_id",
           foreignField: "_id",
-          as: "branches",
+          as: "head_offices",
           pipeline: [
             {
-              $lookup: {
-                from: "head_offices",
-                localField: "head_office_id",
-                foreignField: "_id",
-                as: "head_offices",
+              $project: {
+                _id: 1,
+                name: 1,
+                branches: 1,
+                updatedAt: 1,
               },
             },
           ],
         },
       },
       {
-        $lookup: {
-          from: "vehicles",
-          localField: "duplicates",
-          foreignField: "_id",
-          as: "vehicles",
+        $project: {
+          _id: 1,
+          name: 1,
+          contact_one: 1,
+          contact_two: 1,
+          contact_three: 1,
+          records: 1,
+          updatedAt: 1,
+          head_offices: 1,
+        },
+      },
+      {
+        $sort: {
+          name: 1,
         },
       },
     ]);
 
-    return res
-      .status(200)
-      .json({ data: response.length > 0 ? response[0] : {} });
+    return res.status(200).json({
+      data: {
+        _id: { [type]: normalizedQuery },
+        branch_id: uniqueBranchIds,
+        data_count: vehicles.length,
+        branch_count: uniqueBranchIds.length,
+        duplicates: [],
+        branches,
+        vehicles: vehiclesForResponse,
+      },
+    });
   } catch (error) {
     return next(responseError(500, "Internal server error"));
   }

@@ -29,6 +29,20 @@ export async function apiUpdateUserPassword(data) {
   });
 }
 
+export async function apiDeleteUser(user_id) {
+  return ApiService.fetchData({
+    url: `/v1/user/delete/${user_id}`,
+    method: "delete",
+  });
+}
+
+export async function apiDeleteUserDeviceId(user_id) {
+  return ApiService.fetchData({
+    url: `/v1/user/device/id/delete/${user_id}`,
+    method: "delete",
+  });
+}
+
 // END POINTS FOR USER PLAN
 export async function apiAllUserPlan(data) {
   return ApiService.fetchData({

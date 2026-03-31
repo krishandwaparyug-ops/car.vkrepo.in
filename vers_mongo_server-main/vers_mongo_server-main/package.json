@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "test:api:vehicle:user": "node test-apis/vehicle-test-apis.js user",
+    "test:api:vehicle:admin": "node test-apis/vehicle-test-apis.js admin",
+    "test:api:vehicle:both": "node test-apis/vehicle-test-apis.js both"
   },
   "author": "",
   "license": "ISC",

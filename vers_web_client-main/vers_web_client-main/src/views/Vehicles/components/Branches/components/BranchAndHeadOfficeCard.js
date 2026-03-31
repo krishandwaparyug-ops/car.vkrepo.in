@@ -11,9 +11,10 @@ const BranchAndHeadOfficeCard = () => {
   );
 
   useEffect(() => {
-    // Dispatch the initial index (0) when the component mounts
+    // Reset selection whenever duplicate details payload changes.
+    setSelectedRow(0);
     dispatch(setSelectedVehicleIndex(0));
-  }, [dispatch]);
+  }, [details, dispatch]);
 
   const handleRowClick = (index) => {
     setSelectedRow(index);

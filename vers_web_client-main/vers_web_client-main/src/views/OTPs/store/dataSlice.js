@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiGetAllOTPs, apiNewOTPGenerate } from "../../../services/OTPService";
-import { apiUpdateUserPassword } from "../../../services/UserService";
+import { apiUpdateDeviceRequest } from "../../../services/DeviceRequestService";
+import {
+  apiDeleteUserDeviceId,
+  apiUpdateUserPassword,
+} from "../../../services/UserService";
 
 export const getOTPList = createAsyncThunk("otp/data/list", async (data) => {
   try {
@@ -28,6 +32,31 @@ export const newPassword = createAsyncThunk(
       const response = await apiUpdateUserPassword(data);
       return response;
     } catch (error) {
+      return error?.response || error.toString();
+    }
+  }
+);
+
+export const deleteOTPUserDevice = createAsyncThunk(
+  "otp/data/user/device/delete",
+  async (data) => {
+    try {
+      const response = await apiDeleteUserDeviceId(data?.user_id);
+      return response;
+    } catch (error) {
+      // Fallback for environments still using the older device-request API only.
+      if (data?.requestDeviceId) {
+        try {
+          const fallbackResponse = await apiUpdateDeviceRequest({
+            user_id: data?.user_id,
+            status: "FAILED",
+          });
+          return fallbackResponse;
+        } catch (fallbackError) {
+          return fallbackError?.response || fallbackError.toString();
+        }
+      }
+
       return error?.response || error.toString();
     }
   }
@@ -70,9 +99,21 @@ const dataSlice = createSlice({
       }
     });
     builder.addCase(newPassword.fulfilled, () => {});
+    builder.addCase(deleteOTPUserDevice.fulfilled, (state, action) => {
+      if (action.payload.status === 200) {
+        state.OTP.OTPs = state.OTP.OTPs.map((user) => {
+          if (user?._id === action.meta.arg?.user_id) {
+            return {
+              ...user,
+              deviceId: null,
+              requestDeviceId: null,
+            };
+          }
+          return user;
+        });
+      }
+    });
   },
 });
-
-export const {} = dataSlice.actions;
 
 export default dataSlice.reducer;

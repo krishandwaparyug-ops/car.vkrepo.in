@@ -158,6 +158,8 @@ const vehicleSchema = new Schema(
 // Search indexing
 vehicleSchema.index({ last_four_digit_rc: 1 });
 vehicleSchema.index({ last_four_digit_chassis: 1 });
+vehicleSchema.index({ rc_no: 1 });
+vehicleSchema.index({ chassis_no: 1 });
 
 const Vehicle = mongoose.model("Vehicle", vehicleSchema);
 

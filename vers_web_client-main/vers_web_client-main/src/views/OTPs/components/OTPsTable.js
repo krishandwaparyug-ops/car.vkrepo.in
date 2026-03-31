@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { CgSpinner } from "react-icons/cg";
 import { useDispatch } from "react-redux";
-import { newOTPGenerate } from "../store/dataSlice";
+import { deleteOTPUserDevice, newOTPGenerate } from "../store/dataSlice";
 import { toast } from "react-toastify";
 import sortData from "../../../utils/sortFunction";
 import { setPasswordModal, setSelectedUser } from "../store/stateSlice";
@@ -13,6 +13,7 @@ const OTPsTable = (props) => {
   const { data = [] } = props;
   const dispatch = useDispatch();
   const [generating, setGenerating] = useState({ user_id: "", status: false });
+  const [deleting, setDeleting] = useState({ user_id: "", status: false });
 
   const sortDataFunc = useMemo(() => {
     return sortData(data, "name");
@@ -32,6 +33,35 @@ const OTPsTable = (props) => {
       notify("OTP successfully changed", "success");
     } else {
       notify("OTP changed unsuccessful");
+    }
+  };
+
+  const handleOnDelete = async (userDetails) => {
+    const user_id = userDetails?._id;
+    const name = userDetails?.name;
+    const isConfirmed = window.confirm(
+      `Delete the device id for ${name || "this user"}? This action cannot be undone.`
+    );
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    setDeleting({ user_id, status: true });
+    const action = await dispatch(
+      deleteOTPUserDevice({
+        user_id,
+        requestDeviceId: userDetails?.requestDeviceId,
+      })
+    );
+    setDeleting({ user_id, status: false });
+
+    if (action?.payload?.status === 200) {
+      notify("Device id successfully deleted", "success");
+    } else {
+      notify(
+        action?.payload?.data?.message || "Device id delete unsuccessful"
+      );
     }
   };
 
@@ -89,7 +119,7 @@ const OTPsTable = (props) => {
                   <td className="border border-gray-400 ps-2 pe-2">
                     <div className=" flex justify-center items-center gap-x-2">
                       <button
-                        disabled={generating.status}
+                        disabled={generating.status || deleting.status}
                         onClick={() => handleOnGenerate(details?._id)}
                         className={`ps-2 pe-2 bg-orange-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-orange-400 ${
                           generating.status && "cursor-not-allowed"
@@ -106,7 +136,7 @@ const OTPsTable = (props) => {
                         code
                       </button>
                       <button
-                        disabled={generating.status}
+                        disabled={generating.status || deleting.status}
                         onClick={() => {
                           dispatch(setSelectedUser(details));
                           dispatch(setPasswordModal(true));
@@ -114,6 +144,18 @@ const OTPsTable = (props) => {
                         className={`ps-2 pe-2 bg-blue-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-blue-400`}
                       >
                         pass
+                      </button>
+                      <button
+                        disabled={generating.status || deleting.status}
+                        onClick={() => handleOnDelete(details)}
+                        className={`ps-2 pe-2 bg-red-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-red-400 ${
+                          deleting.status ? "cursor-not-allowed" : ""
+                        }`}
+                      >
+                        {deleting.status && deleting.user_id === details?._id ? (
+                          <CgSpinner className="text-white animate-spin" />
+                        ) : null}
+                        delete
                       </button>
                     </div>
                   </td>

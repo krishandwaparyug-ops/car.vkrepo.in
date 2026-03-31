@@ -41,6 +41,11 @@ const pagesRoute = [
         path: `/code`,
         component: React.lazy(() => import('../../views/OTPs'))
     },
+    {
+        key: 'testing',
+        path: `/testing`,
+        component: React.lazy(() => import('../../views/Testing'))
+    },
 ]
 
 export default pagesRoute

@@ -2,6 +2,7 @@ import InfiniteScroll from "react-infinite-scroller";
 import { setSelectedVehicle } from "../../../store/stateSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useMemo, useState } from "react";
+import { getVehicleDetailsAndDuplicates } from "../../../store/dataSlice";
 const SearchTable = (props) => {
   const type = useSelector((state) => state.vehicle.state.searchQuery.type);
   const pageIndex = useSelector(
@@ -66,12 +67,19 @@ const SearchTable = (props) => {
                   }`}
                   key={index}
                   onClick={() => {
+                    const selectedValue =
+                      type === "rc_no"
+                        ? vehicle?.rc_no || ""
+                        : vehicle?.chassis_no || "";
+
                     dispatch(
-                      setSelectedVehicle(
-                        type === "rc_no"
-                          ? vehicle?.rc_no || ""
-                          : vehicle?.chassis_no || ""
-                      )
+                      setSelectedVehicle(selectedValue)
+                    );
+                    dispatch(
+                      getVehicleDetailsAndDuplicates({
+                        query: selectedValue,
+                        type,
+                      })
                     );
                     setSelectedRowIndex(index);
                   }}

@@ -24,6 +24,10 @@ const {
   updateUserPassword,
   updateUserDeviceId,
 } = require("../controllers/user.controllers/update.controller");
+const {
+  deleteUserByAdmin,
+  deleteUserDeviceIdByAdmin,
+} = require("../controllers/user.controllers/delete.controller");
 const { sendOTP } = require("../controllers/auth.controllers/otp/sendOTP");
 const { verifyOTP } = require("../controllers/auth.controllers/otp/verifyOTP");
 const {
@@ -67,6 +71,20 @@ router.put(
   tokenVerifier,
   rolePermission([ADMIN]),
   updateUserPassword
+);
+
+router.delete(
+  "/delete/:user_id",
+  tokenVerifier,
+  rolePermission([ADMIN]),
+  deleteUserByAdmin
+);
+
+router.delete(
+  "/device/id/delete/:user_id",
+  tokenVerifier,
+  rolePermission([ADMIN]),
+  deleteUserDeviceIdByAdmin
 );
 
 router.post(

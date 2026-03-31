@@ -75,6 +75,14 @@ const Header = (props) => {
               CODE & DEVICE ID
             </Link>
           </li>
+          <li>
+            <Link
+              className="cursor-pointer p-2 pe-3 ps-3 bg-gray-50 rounded-sm hover:bg-gray-300"
+              to="/testing"
+            >
+              TEST APIs
+            </Link>
+          </li>
         </ul>
         <div className="header-action header-action-end">{headerEnd}</div>
       </div>

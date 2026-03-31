@@ -47,7 +47,14 @@ const getCurrentUserDetails = async (req, res, next) => {
 
 const getUserDeviceChangeList = async (req, res, next) => {
   try {
-    const users = await User.find({ requestDeviceId: { $ne: null } }).select('id mobile name');
+    const users = await User.find({
+      $or: [
+        { requestDeviceId: { $exists: true, $nin: [null, ""] } },
+        { deviceId: { $exists: true, $nin: [null, ""] } },
+      ],
+    })
+      .select("_id mobile name requestDeviceId deviceId")
+      .sort({ name: 1 });
     return res.status(200).json({ data: users, success: true });
   } catch (error) {
     return next(responseError(500, "Internal server error"));

@@ -45,6 +45,8 @@ const getAllOTPs = async (req, res, next) => {
           _id: 1,
           mobile: 1,
           otp: 1,
+          deviceId: 1,
+          requestDeviceId: 1,
         },
       },
     ]);

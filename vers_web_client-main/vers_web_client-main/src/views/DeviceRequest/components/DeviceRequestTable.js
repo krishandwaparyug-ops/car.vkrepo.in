@@ -53,6 +53,9 @@ const DeviceRequestTable = (props) => {
               mobile
             </th>
             <th className="border border-gray-400 font-semibold text-md">
+              device id
+            </th>
+            <th className="border border-gray-400 font-semibold text-md">
               action
             </th>
           </tr>
@@ -71,47 +74,54 @@ const DeviceRequestTable = (props) => {
                   <td className="border border-gray-400 ps-2 pe-2 text-center">
                     {details?.mobile || "-"}
                   </td>
+                  <td className="border border-gray-400 ps-2 pe-2 text-center normal-case">
+                    {details?.requestDeviceId || details?.deviceId || "-"}
+                  </td>
                   <td className="border border-gray-400 ps-2 pe-2">
-                    <div className=" flex justify-center items-center gap-x-2">
-                      <button
-                        disabled={updatingUser.loading}
-                        onClick={() =>
-                          handleOnUpdateDeviceRequest(details?._id, "ACCEPTED")
-                        }
-                        className={`ps-2 pe-2 bg-green-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-green-400 ${
-                          updatingUser.status && "cursor-not-allowed"
-                        }`}
-                      >
-                        {updatingUser.loading &&
-                        updatingUser.user_id === details?._id &&
-                        updatingUser.status === "ACCEPTED" ? (
-                          <CgSpinner
-                            className={`text-white ${
-                              updatingUser ? "animate-spin" : ""
-                            }`}
-                          />
-                        ) : null}
-                        Yes
-                      </button>
-                      <button
-                        disabled={updatingUser.loading}
-                        onClick={() =>
-                          handleOnUpdateDeviceRequest(details?._id, "FAILED")
-                        }
-                        className={`ps-2 pe-2 bg-red-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-red-400`}
-                      >
-                        {updatingUser.loading &&
-                        updatingUser.user_id === details?._id &&
-                        updatingUser.status === "FAILED" ? (
-                          <CgSpinner
-                            className={`text-white ${
-                              updatingUser ? "animate-spin" : ""
-                            }`}
-                          />
-                        ) : null}
-                        No
-                      </button>
-                    </div>
+                    {details?.requestDeviceId ? (
+                      <div className=" flex justify-center items-center gap-x-2">
+                        <button
+                          disabled={updatingUser.loading}
+                          onClick={() =>
+                            handleOnUpdateDeviceRequest(details?._id, "ACCEPTED")
+                          }
+                          className={`ps-2 pe-2 bg-green-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-green-400 ${
+                            updatingUser.status && "cursor-not-allowed"
+                          }`}
+                        >
+                          {updatingUser.loading &&
+                          updatingUser.user_id === details?._id &&
+                          updatingUser.status === "ACCEPTED" ? (
+                            <CgSpinner
+                              className={`text-white ${
+                                updatingUser ? "animate-spin" : ""
+                              }`}
+                            />
+                          ) : null}
+                          Yes
+                        </button>
+                        <button
+                          disabled={updatingUser.loading}
+                          onClick={() =>
+                            handleOnUpdateDeviceRequest(details?._id, "FAILED")
+                          }
+                          className={`ps-2 pe-2 bg-red-500 h-8 border-0 text-md rounded-sm capitalize font-medium flex text-white items-center justify-start hover:bg-red-400`}
+                        >
+                          {updatingUser.loading &&
+                          updatingUser.user_id === details?._id &&
+                          updatingUser.status === "FAILED" ? (
+                            <CgSpinner
+                              className={`text-white ${
+                                updatingUser ? "animate-spin" : ""
+                              }`}
+                            />
+                          ) : null}
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-500">-</div>
+                    )}
                   </td>
                 </tr>
               );

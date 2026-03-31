@@ -115,6 +115,10 @@ const updateUserDeviceId = async (req, res, next) => {
         deviceId: isUserExist.requestDeviceId,
       };
       await User.findByIdAndUpdate(user_id, value);
+    } else {
+      await User.findByIdAndUpdate(user_id, {
+        requestDeviceId: null,
+      });
     }
     return res.status(200).json({
       message: `User device successfully updated`,
