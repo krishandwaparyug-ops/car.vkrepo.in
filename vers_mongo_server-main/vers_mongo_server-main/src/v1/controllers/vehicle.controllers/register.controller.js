@@ -197,7 +197,12 @@ const registerVehicleChunk = async (req, res, next) => {
 
     // [OPTIMIZATION] Direct Collection Insertion (bypassing Mongoose complexity)
     if (data.length > 0) {
-       await Vehicle.collection.insertMany(data, { ordered: false });
+       // Ensure branch_id is stored as ObjectId, not string (native driver skips Mongoose casting)
+       const docsToInsert = data.map(doc => ({
+         ...doc,
+         branch_id: doc.branch_id ? new mongoose.Types.ObjectId(doc.branch_id) : branchIdObj,
+       }));
+       await Vehicle.collection.insertMany(docsToInsert, { ordered: false });
        // Increment record counts incrementally
        await Branch.findByIdAndUpdate(branchId, { $inc: { records: data.length } });
     }

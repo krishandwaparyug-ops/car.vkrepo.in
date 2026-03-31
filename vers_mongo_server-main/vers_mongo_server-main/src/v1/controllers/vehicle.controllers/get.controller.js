@@ -292,7 +292,9 @@ const downloadVehicleByBranchId = async (req, res, next) => {
       encoding: "utf-8",
     };
     const json2csv = new Transform(opts, transformOpts);
-    const data = Vehicle.find({ branch_id: branchId }).cursor();
+    // Query both ObjectId and string forms of branch_id to handle legacy data
+    const branchObjId = new mongoose.Types.ObjectId(branchId);
+    const data = Vehicle.find({ $or: [{ branch_id: branchObjId }, { branch_id: branchId }] }).cursor();
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", 'attachment; filename="data.csv"');
     pipeline(data, json2csv, res, (err) => {
