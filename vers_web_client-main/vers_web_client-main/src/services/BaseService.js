@@ -18,7 +18,7 @@ BaseService.interceptors.request.use(
         const rawPersistData = sessionStorage.getItem(PERSIST_STORE_NAME)
         const persistData = deepParseJson(rawPersistData)
 
-        let accessToken = persistData.auth.session.token
+        let accessToken = persistData?.auth?.session?.token
 
         if (!accessToken) {
             const { auth } = store.getState()
