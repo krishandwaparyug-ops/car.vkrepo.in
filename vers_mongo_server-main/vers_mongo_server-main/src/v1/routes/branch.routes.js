@@ -34,7 +34,6 @@ router.delete(
   "/delete",
   tokenVerifier,
   rolePermission([ADMIN]),
-  deleteBulkVehiclesByBranchId,
   deleteBranchByBranchId
 );
 router.delete(
