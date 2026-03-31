@@ -9,7 +9,7 @@ const connectOptions = {
   heartbeatFrequencyMS: 10000,    // Pulse every 10s to keep connection warm and healthy
 };
 
-mongoose.connect(process.env.MONGO_URL, connectOptions)
+mongoose.connect(process.env.MONGO_DB || process.env.MONGO_URL, connectOptions)
   .then(() => console.log("MongoDB Connected Successfully"))
   .catch((err) => console.log("Mongo Error:", err));
 

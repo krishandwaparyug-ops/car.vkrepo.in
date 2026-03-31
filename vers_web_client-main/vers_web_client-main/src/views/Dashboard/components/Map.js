@@ -68,7 +68,7 @@ const MapInfo = (props) => {
           </LayersControl.BaseLayer>
         </LayersControl>
 
-      {locations?.map((location) => (
+      {locations?.filter((location) => location?.position[0] != null && location?.position[1] != null).map((location) => (
         <Marker
           key={location?._id}
           position={location?.position}
