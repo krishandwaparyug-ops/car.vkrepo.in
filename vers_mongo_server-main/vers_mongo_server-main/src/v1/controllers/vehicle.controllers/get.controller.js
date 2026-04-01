@@ -27,8 +27,9 @@ const getVehiclesByAdminOnSearch = async (req, res, next) => {
     let searchType = "last_four_digit_rc";
     if (type === "chassis_no") searchType = "last_four_digit_chassis";
 
+    const parsed = parseInt(searchTerm);
     const matchQuery = {
-      [searchType]: String(parseInt(searchTerm)),
+      [searchType]: { $in: [parsed, String(parsed)] },
     };
 
     if (branchId) {
@@ -62,8 +63,9 @@ const getVehiclesByUserOnSearch = async (req, res, next) => {
     let searchType = "last_four_digit_rc";
     if (type === "chassis_no") searchType = "last_four_digit_chassis";
 
+    const parsed = parseInt(query);
     const vehicles = await Vehicle.find({
-      [searchType]: String(parseInt(query)),
+      [searchType]: { $in: [parsed, String(parsed)] },
     })
       .select("_id rc_no chassis_no mek_and_model")
       .sort({ _id: -1 })
