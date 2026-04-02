@@ -139,14 +139,14 @@ const Dashboard = () => {
           loopwar.dev
         </h1>
         <h1 className="text-xl text-[#32496d] mt-2 text-center font-medium">
-          Built by{" "}
+          Design & Developed By{" "}
           <a
-            href="https://loopwar.dev"
+            href="https://5techg.com"
             target="_blank"
             className="hover:underline text-[#1f6feb]"
             rel="noreferrer"
           >
-            loopwar.dev
+            5TechG Team
           </a>
         </h1>
         <div className="mt-3 flex justify-center">
