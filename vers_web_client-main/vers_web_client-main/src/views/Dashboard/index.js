@@ -136,25 +136,29 @@ const Dashboard = () => {
         </div>
 
         <h1 className="brand-heading text-3xl text-[#1f4d8f] mt-6 text-center font-semibold">
-          Kartika Associates
+          loopwar.dev
         </h1>
         <h1 className="text-xl text-[#32496d] mt-2 text-center font-medium">
-          Design & Developed By{" "}
+          Built by{" "}
           <a
-            href="https://5techg.com"
+            href="https://loopwar.dev"
             target="_blank"
             className="hover:underline text-[#1f6feb]"
             rel="noreferrer"
           >
-            5TechG Team
+            loopwar.dev
           </a>
         </h1>
-        <h1 className="text-lg text-[#32496d] text-center font-medium">
-          Contact Us :- 7028828831
-        </h1>
-        <h1 className="text-md text-[#ff7a1a] text-center font-medium">
-          Let's Build Together
-        </h1>
+        <div className="mt-3 flex justify-center">
+          <a
+            href="https://loopwar.dev"
+            target="_blank"
+            rel="noreferrer"
+            className="brand-link-highlight"
+          >
+            Visit https://loopwar.dev
+          </a>
+        </div>
       </div>
       <div className="panel px-5 py-4">
         <div className="flex justify-between items-center h-8 mb-3">

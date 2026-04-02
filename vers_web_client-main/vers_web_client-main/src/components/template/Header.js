@@ -23,8 +23,18 @@ const Header = (props) => {
     <header className="mb-3 rounded-2xl border border-[#dbe5f4] bg-white/90 px-3 py-2 shadow-[0_14px_32px_rgba(17,34,64,0.1)] backdrop-blur-sm">
       <div className="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex items-center justify-between gap-3">
-          <div className="brand-heading text-[17px] font-semibold text-[#1d3f72]">
-            Kartika Control Center
+          <div className="flex items-center gap-2">
+            <div className="brand-heading text-[17px] font-semibold text-[#1d3f72]">
+              loopwar.dev Control Center
+            </div>
+            <a
+              href="https://loopwar.dev"
+              target="_blank"
+              rel="noreferrer"
+              className="brand-link-highlight"
+            >
+              loopwar.dev
+            </a>
           </div>
           <div className="header-action header-action-start">{headerStart}</div>
         </div>

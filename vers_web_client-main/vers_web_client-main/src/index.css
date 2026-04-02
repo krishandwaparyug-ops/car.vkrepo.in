@@ -102,17 +102,24 @@ textarea:focus {
 }
 
 button {
+  position: relative;
+  overflow: hidden;
   border-radius: 10px;
-  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  box-shadow: 0 6px 16px rgba(17, 34, 64, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
 }
 
 button:hover {
   transform: translateY(-1px);
+  filter: saturate(1.07);
 }
 
 button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 table {
@@ -134,6 +141,26 @@ th {
   border-radius: var(--radius-md);
   background: linear-gradient(140deg, #ffffff, #f7faff);
   box-shadow: var(--shadow-soft);
+}
+
+.brand-link-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #8bc0ff;
+  background: linear-gradient(135deg, #1f6feb 0%, #1e90ff 100%);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.78rem;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(31, 111, 235, 0.35);
+}
+
+.brand-link-highlight:hover {
+  filter: brightness(1.05);
+  text-decoration: none;
 }
 
 @media (max-width: 1024px) {
