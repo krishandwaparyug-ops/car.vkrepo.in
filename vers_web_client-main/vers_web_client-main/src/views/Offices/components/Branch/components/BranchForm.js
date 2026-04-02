@@ -11,7 +11,12 @@ const customStyles = {
     left: "50%",
     right: "auto",
     bottom: "auto",
-    width: "510px",
+    width: "560px",
+    borderRadius: "16px",
+    border: "1px solid #dbe5f4",
+    boxShadow: "0 20px 40px rgba(17,34,64,0.16)",
+    background: "#ffffff",
+    padding: "18px",
     marginRight: "-50%",
     transform: "translate(-50%, -40%)",
   },
@@ -110,7 +115,7 @@ function BranchForm(props) {
       onRequestClose={closeModal}
       style={customStyles}
     >
-      <h3 className="p-0 m-0 mb-4 text-center font-semibold text-lg text-gray-700">
+      <h3 className="p-0 m-0 mb-4 text-center font-semibold text-xl text-[#1f3d66]">
         {selectedHeadOffice?.name}
       </h3>
       <form className="h-full w-full" onSubmit={handleFormSubmit}>
@@ -121,7 +126,7 @@ function BranchForm(props) {
             placeholder="BRANCH NAME"
             autoFocus
             value={values.name}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             onChange={handleOnChange}
             name="name"
           />
@@ -130,7 +135,7 @@ function BranchForm(props) {
           <input
             autoComplete="off"
             value={values.contact_one.name}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             placeholder="CONTACT PERSON ONE"
             onChange={(e) => handleObjectChange(e, "contact_one")}
             name="name"
@@ -139,7 +144,7 @@ function BranchForm(props) {
             autoComplete="off"
             value={values.contact_one.mobile}
             placeholder="CONTACT PERSON MOBILE"
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             onChange={(e) => handleObjectChange(e, "contact_one")}
             name="mobile"
           />
@@ -148,7 +153,7 @@ function BranchForm(props) {
           <input
             autoComplete="off"
             value={values.contact_two.name}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             placeholder="CONTACT PERSON TWO"
             onChange={(e) => handleObjectChange(e, "contact_two")}
             name="name"
@@ -156,7 +161,7 @@ function BranchForm(props) {
           <input
             autoComplete="off"
             value={values.contact_two.mobile}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             placeholder="CONTACT PERSON MOBILE"
             onChange={(e) => handleObjectChange(e, "contact_two")}
             name="mobile"
@@ -166,7 +171,7 @@ function BranchForm(props) {
           <input
             autoComplete="off"
             value={values.contact_three.name}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             placeholder="CONTACT PERSON THREE"
             onChange={(e) => handleObjectChange(e, "contact_three")}
             name="name"
@@ -174,7 +179,7 @@ function BranchForm(props) {
           <input
             autoComplete="off"
             value={values.contact_three.mobile}
-            className="uppercase w-full h-full text-sm ps-3 pe-3 outline-purple-800 border rounded-sm border-gray-300"
+            className="uppercase w-full h-full text-sm ps-3 pe-3 border rounded-md border-[#c9d8ef]"
             placeholder="CONTACT PERSON MOBILE"
             onChange={(e) => handleObjectChange(e, "contact_three")}
             name="mobile"
@@ -184,7 +189,7 @@ function BranchForm(props) {
           {initialValue?.type === "edit" ? (
             <>
               <button
-                className={`ps-2 pe-2 h-7 text-sm border-0 uppercase rounded-sm bg-red-500 text-white  ${
+                className={`px-3 h-8 text-xs border-0 uppercase rounded-md bg-[#d93838] font-semibold text-white hover:bg-[#b72d2d] ${
                   loading ? "cursor-wait" : ""
                 }`}
                 type="button"
@@ -195,7 +200,7 @@ function BranchForm(props) {
                 Del Records
               </button>
               <button
-                className={`ps-2 pe-2 h-7 text-sm border-0 uppercase rounded-sm bg-red-500 text-white  ${
+                className={`px-3 h-8 text-xs border-0 uppercase rounded-md bg-[#d93838] font-semibold text-white hover:bg-[#b72d2d] ${
                   loading ? "cursor-wait" : ""
                 }`}
                 type="button"
@@ -208,7 +213,7 @@ function BranchForm(props) {
             </>
           ) : null}
           <button
-            className={`ps-2 pe-2 h-7 text-sm border uppercase rounded-sm border-gray-300 bg-blue-600 text-white  ${
+            className={`px-3 h-8 text-xs border uppercase rounded-md border-[#1f6feb] bg-[#1f6feb] font-semibold text-white hover:bg-[#1658bc] ${
               loading ? "cursor-wait" : ""
             }`}
             type="button"
@@ -220,7 +225,7 @@ function BranchForm(props) {
           </button>
           <button
             disabled={loading}
-            className={`ps-2 pe-2 h-7 text-sm border uppercase rounded-sm border-gray-300 text-slate-700  ${
+            className={`px-3 h-8 text-xs border uppercase rounded-md border-[#c9d8ef] bg-[#f6f9ff] font-semibold text-[#27466f] hover:bg-[#e8f0fd] ${
               loading ? "cursor-wait" : ""
             }`}
             type="submit"

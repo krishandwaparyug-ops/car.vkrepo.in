@@ -51,45 +51,45 @@ const BranchTable = (props) => {
   }, [data]);
 
   return (
-    <div className="w-full h-full rounded-sm">
-      <div className="h-10 bg-blue-600 flex justify-between items-center p-1 rounded-t-sm">
+    <div className="w-full h-full rounded-md border border-[#dbe5f4] bg-white shadow-[0_12px_28px_rgba(17,34,64,0.08)]">
+      <div className="h-12 bg-gradient-to-r from-[#eef4ff] to-[#ffffff] flex justify-between items-center px-2 rounded-t-md border-b border-[#dbe5f4]">
         <input
-          className="h-full outline-none ps-2 pe-2 rounded-sm text-md w-[60%]"
+          className="h-9 ps-3 pe-3 rounded-md text-sm w-[58%] border border-[#c9d8ef]"
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search here..."
         ></input>
         <div className="flex gap-2">
           <button
-            className="ps-3 pe-3 bg-white h-8 border-0 rounded-sm uppercase font-medium text-gray-700 flex justify-start items-center hover:bg-gray-200"
+            className="px-3 bg-[#f7fbff] h-9 border border-[#c9d8ef] rounded-md uppercase text-xs font-semibold text-[#27466f] flex justify-start items-center hover:bg-[#e9f2ff]"
             onClick={() => dispatch(setType("all"))}
           >
             ALL
           </button>
           <button
-            className="ps-3 pe-3 bg-white h-8 border-0 rounded-sm uppercase font-medium text-gray-700 flex justify-start items-center hover:bg-gray-200"
+            className="px-3 bg-[#1f6feb] h-9 border-0 rounded-md uppercase text-xs font-semibold text-white flex justify-start items-center hover:bg-[#1658bc]"
             onClick={() => dispatch(allBranch())}
           >
             {loading ? (
-              <CgSpinner className={`${loading ? "animate-spin" : ""}`} />
+              <CgSpinner className={`mr-1 ${loading ? "animate-spin" : ""}`} />
             ) : null}
             Refresh
           </button>
         </div>
       </div>
-      <div className="w-full h-full overflow-scroll">
-        <table className="w-full uppercase border-collapse">
+      <div className="w-full h-[calc(100%-48px)] overflow-x-auto overflow-y-auto">
+        <table className="w-full min-w-[860px] uppercase border-collapse">
           <thead className="h-10 relative">
-            <tr className="h-full sticky top-0 bg-slate-200 cursor-default select-none text-center text-md">
-              <th className="border font-semibold border-gray-400 text-md">
+            <tr className="h-full sticky top-0 bg-[#edf3ff] cursor-default select-none text-center text-md">
+              <th className="border font-semibold border-[#d2dff2] text-sm">
                 branch name
               </th>
-              <th className="border font-semibold border-gray-400 text-md text-center">
+              <th className="border font-semibold border-[#d2dff2] text-sm text-center">
                 Records
               </th>
-              <th className="border font-semibold border-gray-400 text-md text-center">
+              <th className="border font-semibold border-[#d2dff2] text-sm text-center">
                 date & Time
               </th>
-              <th className="border font-semibold border-gray-400 text-md text-center">
+              <th className="border font-semibold border-[#d2dff2] text-sm text-center">
                 Action
               </th>
             </tr>
@@ -99,23 +99,23 @@ const BranchTable = (props) => {
               sortDataFunc.map((branch, index) => {
                 return (
                   <tr
-                    className="text-left cursor-default select-none [&:nth-child(even)]:bg-gray-200 h-10 text-md hover:bg-gray-300"
+                    className="text-left cursor-default select-none [&:nth-child(even)]:bg-[#f8fbff] h-11 text-sm hover:bg-[#edf4ff]"
                     key={index}
                   >
-                    <td className="border truncate border-gray-400 ps-2 pe-2">
+                    <td className="border truncate border-[#d2dff2] ps-2 pe-2">
                       {branch?.name || "-"}
                     </td>
-                    <td className="border border-gray-400 ps-2 pe-2 text-center">
+                    <td className="border border-[#d2dff2] ps-2 pe-2 text-center">
                       {branch?.records || 0}
                     </td>
-                    <td className="border border-gray-400 ps-2 pe-2 text-center">
+                    <td className="border border-[#d2dff2] ps-2 pe-2 text-center">
                       {dayjs(branch?.updatedAt).format("DD/MM/YYYY hh:mm A") ||
                         "-"}
                     </td>
-                    <td className="text-center border border-gray-400 gap-2 w-40">
-                      <div className="flex gap-2 justify-center w-full">
+                    <td className="text-center border border-[#d2dff2] gap-2 w-[280px]">
+                      <div className="flex gap-2 justify-center w-full py-1">
                         <button
-                          className="ps-2 pe-2 bg-green-500 h-8 border-0 text-md rounded-sm font-medium text-white"
+                          className="px-3 bg-[#169c46] h-8 border-0 text-xs rounded-md font-semibold text-white hover:bg-[#117937]"
                           onClick={() => {
                             dispatch(setSelectedBranch(branch));
                             dispatch(
@@ -127,7 +127,7 @@ const BranchTable = (props) => {
                         </button>
                         <button
                           disabled={downloading}
-                          className={`ps-2 pe-2 bg-gray-400 h-8 border-0 text-md rounded-sm font-medium text-black ${
+                          className={`px-3 bg-[#eef3fa] h-8 border border-[#c9d8ef] text-xs rounded-md font-semibold text-[#29486f] hover:bg-[#dfeaf8] ${
                             downloading ? "cursor-wait" : ""
                           }`}
                           onClick={() => {
@@ -147,7 +147,7 @@ const BranchTable = (props) => {
               })
             ) : (
               <tr>
-                <td colSpan="3" className="text-center w-full text-md">
+                <td colSpan="4" className="text-center w-full text-md py-6 text-[#45638d]">
                   Branch Not Found
                 </td>
               </tr>
