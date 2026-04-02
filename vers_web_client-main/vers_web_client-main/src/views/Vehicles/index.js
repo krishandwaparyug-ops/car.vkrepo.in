@@ -11,14 +11,14 @@ injectReducer("vehicle", VehicleReducer);
 
 const Vehicles = () => {
   return (
-    <div className="grid grid-cols-12 gap-2 pe-2 ps-2 h-96">
-      <div className="col-span-5 h-[85vh]">
+    <div className="page-grid grid-cols-1 xl:grid-cols-12 min-h-[80vh]">
+      <div className="panel xl:col-span-5 h-[85vh] p-2">
         <Search />
       </div>
-      <div className="grid col-span-3 h-[85vh]">
+      <div className="panel grid xl:col-span-3 h-[85vh] p-2">
         <BranchDetails />
       </div>
-      <div className="grid col-span-4 h-[90vh]">
+      <div className="panel grid xl:col-span-4 h-[85vh] p-2">
         <Details />
       </div>
     </div>

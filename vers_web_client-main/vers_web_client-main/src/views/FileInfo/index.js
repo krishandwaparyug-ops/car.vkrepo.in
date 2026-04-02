@@ -53,7 +53,7 @@ const FileInfo = () => {
   }, []);
   
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="page-grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-5">
       {fileInfo.map((file) => {
         return (
           <Statistic

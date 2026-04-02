@@ -93,7 +93,7 @@ const Uploads = () => {
 
   return (
     <>
-      <div className="p-2 h-12 bg-blue-500 flex gap-2 text-white">
+      <div className="panel-header p-2 min-h-12 rounded-xl flex flex-wrap gap-2 text-[#1c3a63] border border-[#d9e5f6] mb-2">
         <FileReader
           setLoading={setLoading}
           setDefaultFileHeader={setDefaultFileHeader}
@@ -129,10 +129,11 @@ const Uploads = () => {
           setDesc={setDesc}
           rawFile={rawFile}
         />
-        <p style={{ padding: 0, margin: 0 }}>{desc}</p>
+        <p className="text-sm font-medium" style={{ padding: 0, margin: 0 }}>{desc}</p>
       </div>
 
       <div
+        className="panel"
         ref={parentRef}
         style={{
           height: `calc(100vh - 110px)`,
@@ -210,9 +211,9 @@ const Uploads = () => {
             </table>
           </div>
         ) : (
-          <div className="h-full w-full justify-center items-center flex flex-col">
+          <div className="h-full w-full justify-center items-center flex flex-col text-[#1f3d66]">
             <CgSpinner
-              className={`h-10 w-10 text-blue-500 ${loading ? "animate-spin" : ""
+              className={`h-10 w-10 text-[#1f6feb] ${loading ? "animate-spin" : ""
                 }`}
             />
             <p>Reading file... Please wait...</p>

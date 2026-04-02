@@ -39,9 +39,9 @@ const OTPs = () => {
   }, [searchQuery, data]);
 
   return (
-    <div className="grid grid-cols-12 gap-2 pe-2 ps-2 h-[85vh]">
-      <div className="grid col-span-6 h-full">
-        <div className="w-full h-full rounded-sm">
+    <div className="page-grid grid-cols-1 xl:grid-cols-12 min-h-[80vh]">
+      <div className="panel grid xl:col-span-6 h-[85vh] p-2">
+        <div className="w-full h-full rounded-md">
           <OTPTableSearch
             setSearchQuery={setSearchQuery}
             onRefresh={fetchAllUserWithOTPs}
@@ -50,7 +50,7 @@ const OTPs = () => {
           <OTPsTable data={filterUsers} />
         </div>
       </div>
-      <div className="grid col-span-6 h-full">
+      <div className="panel grid xl:col-span-6 h-[85vh] p-2">
         <DeviceRequest />
       </div>
       <PasswordForm />

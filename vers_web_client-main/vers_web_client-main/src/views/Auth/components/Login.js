@@ -103,12 +103,12 @@ const Login = () => {
   };
 
   return (
-    <div className="flex justify-center items-center h-full w-full">
-      <div className=" p-4 w-96 h-fit rounded-sm bg-gray-200">
-        <h3 className="text-center mb-3 font-semibold text-xl text-gray-800">
-          WELCOME TO <span className="text-orange-500">Kartika Associates</span>
+    <div className="flex justify-center items-center h-full w-full px-4">
+      <div className="p-6 w-full max-w-md h-fit rounded-2xl border border-[#dbe5f4] bg-white shadow-[0_20px_40px_rgba(17,34,64,0.14)]">
+        <h3 className="brand-heading text-center mb-2 font-semibold text-2xl text-[#183c69]">
+          Welcome to <span className="text-[#1f6feb]">Kartika Associates</span>
         </h3>
-        <h3 className="text-center mb-2 font-semibold text-md text-green-500 capitalize">
+        <h3 className="text-center mb-4 font-semibold text-sm text-[#376a27] capitalize">
           {type} based login
         </h3>
         {type === "password" ? (
@@ -121,7 +121,7 @@ const Login = () => {
                 value={mobile}
                 type="number"
                 onChange={handleChangeMobile}
-                className=" w-full h-10 ps-2 pe-2 mb-4  border-2 bg-white"
+                className="w-full h-11 ps-3 pe-3 mb-3 bg-white"
               ></input>
               <input
                 required
@@ -129,11 +129,11 @@ const Login = () => {
                 value={password}
                 type="password"
                 onChange={handleChangePassword}
-                className=" w-full h-10 ps-2 pe-2 mb-4  border-2 bg-white"
+                className="w-full h-11 ps-3 pe-3 mb-4 bg-white"
               ></input>
               <button
                 disabled={loading}
-                className=" w-full h-10 ps-2 pe-2 bg-purple-500 text-center text-white"
+                className="w-full h-11 ps-2 pe-2 bg-[#1f6feb] text-center text-white font-semibold hover:bg-[#1556b9]"
                 type="submit"
               >
                 {loading ? "Please wait..." : "Login"}
@@ -149,11 +149,11 @@ const Login = () => {
               value={mobile}
               type="number"
               onChange={handleChangeMobile}
-              className=" w-full h-10 ps-2 pe-2 mb-4  border-2 bg-white"
+              className="w-full h-11 ps-3 pe-3 mb-4 bg-white"
             ></input>
             <button
               disabled={loading}
-              className=" w-full h-10 ps-2 pe-2 bg-purple-500 text-center text-white"
+              className="w-full h-11 ps-2 pe-2 bg-[#1f6feb] text-center text-white font-semibold hover:bg-[#1556b9]"
               type="submit"
             >
               {loading ? "OTP sending..." : " Send OTP"}
@@ -164,7 +164,7 @@ const Login = () => {
             <input
               placeholder="Mobile number"
               value={mobile}
-              className=" w-full h-10 ps-2 pe-2 mb-4  border-2 select-none"
+              className="w-full h-11 ps-3 pe-3 mb-4 select-none"
             ></input>
             {isOTPSend ? (
               <OtpInput
@@ -179,6 +179,8 @@ const Login = () => {
                 inputStyle={{
                   padding: "7px",
                   width: "40px",
+                  borderRadius: "10px",
+                  border: "1px solid #c8d7ee",
                   background: "white",
                 }}
                 numInputs={6}
@@ -188,7 +190,7 @@ const Login = () => {
             ) : null}
             <button
               disabled={loading}
-              className=" w-full h-10 ps-2 pe-2 bg-purple-500 text-center text-white"
+              className="w-full h-11 ps-2 pe-2 bg-[#1f6feb] text-center text-white font-semibold hover:bg-[#1556b9]"
               type="submit"
             >
               {loading ? " Please wait" : " Verify OTP"}
@@ -199,19 +201,19 @@ const Login = () => {
           className={`flex mt-5 ${type === "OTP" && isOTPSend ? "justify-between" : "justify-center"
             }`}
         >
-          <p className="text-orange-500">
+          <p className="text-[#576f96]">
             Login by{" "}
             <span
-              className="text-purple-500 hover:underline cursor-pointer"
+              className="text-[#1f6feb] hover:underline cursor-pointer"
               onClick={handleOnTypeChange}
             >
               {type === "password" ? "OTP" : "password"}
             </span>
           </p>
           {type === "OTP" && isOTPSend ? (
-            <p className="text-orange-500">
+            <p className="text-[#576f96]">
               <span
-                className="text-purple-500 hover:underline cursor-pointer"
+                className="text-[#1f6feb] hover:underline cursor-pointer"
                 onClick={(e) => handleOTPSend(e, "resend")}
               >
                 Resend OTP

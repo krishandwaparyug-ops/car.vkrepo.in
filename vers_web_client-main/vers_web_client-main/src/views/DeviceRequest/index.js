@@ -47,7 +47,7 @@ const DeviceRequest = () => {
   }, [searchQuery, data]);
 
   return (
-    <div className="w-full h-full rounded-sm">
+    <div className="w-full h-full rounded-md panel p-2">
       <DeviceRequestTableSearch
         setSearchQuery={setSearchQuery}
         onRefresh={fetchAllUserDeviceRequest}

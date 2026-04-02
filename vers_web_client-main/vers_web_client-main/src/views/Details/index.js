@@ -37,7 +37,7 @@ const Details = () => {
     }
   }, []);
   return (
-    <div className="pe-2 ps-2 h-[85vh]">
+    <div className="panel p-2 h-[85vh]">
       <TableFilterTools fetchDetails={fetchDetails} users={users} />
       <DetailsTable data={details} />
     </div>

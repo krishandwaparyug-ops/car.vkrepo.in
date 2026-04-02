@@ -9,7 +9,7 @@ const Statistic = ({
 }) => {
   return (
     <div
-      className={`h-22 bg-blue-500 rounded-md text-white p-2 ${
+      className={`h-22 border border-[#cfe0f7] bg-gradient-to-br from-[#1f6feb] to-[#1554b2] rounded-xl text-white p-3 shadow-[0_14px_28px_rgba(21,84,178,0.28)] ${
         isDownloading ? "cursor-wait" : "cursor-pointer"
       }`}
       onClick={() => {
@@ -18,8 +18,8 @@ const Statistic = ({
     >
       <div className="h-1/2 flex gap-1 justify-between mb-3">
         <div className="h-full">
-          <p className="text-md font-semibold">{data.file_name}</p>
-          <p className="text-sm">{data.bankDetails?.bank_name || 'N/A'}</p>
+          <p className="text-md font-semibold truncate">{data.file_name}</p>
+          <p className="text-sm text-blue-100">{data.bankDetails?.bank_name || 'N/A'}</p>
         </div>
         <BsFiletypeCsv className="h-full text-4xl" />
       </div>

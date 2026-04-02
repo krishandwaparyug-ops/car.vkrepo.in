@@ -61,9 +61,9 @@ const User = () => {
   }, [searchQuery, users, status]);
 
   return (
-    <div className="grid grid-cols-12 gap-2 pe-2 ps-2 h-[85vh]">
-      <div className="grid col-span-5 h-full">
-        <div className="w-full h-full rounded-sm">
+    <div className="page-grid grid-cols-1 xl:grid-cols-12 min-h-[80vh]">
+      <div className="panel grid xl:col-span-5 h-[85vh] p-2">
+        <div className="w-full h-full rounded-md">
           <TableSearch
             setSearchQuery={setSearchQuery}
             onRefresh={fetchAllUsers}
@@ -74,10 +74,10 @@ const User = () => {
           <UserTable data={filterUsers} />
         </div>
       </div>
-      <div className="grid col-span-3 h-[85vh]">
+      <div className="panel grid xl:col-span-3 h-[85vh] p-2">
         {!isEmpty(selectedUser) && <UserDetails selectedUser={selectedUser} />}
       </div>
-      <div className="grid col-span-4 h-full">
+      <div className="panel grid xl:col-span-4 h-[85vh] p-2">
         {!isEmpty(selectedUser) && (
           <BranchTable
             selectedUser={selectedUser}

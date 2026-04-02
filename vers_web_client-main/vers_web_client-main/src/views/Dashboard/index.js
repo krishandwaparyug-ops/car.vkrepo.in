@@ -76,12 +76,12 @@ const Dashboard = () => {
   }, [date]);
 
   return (
-    <div className="grid grid-cols-2 gap-x-4 px-2">
-      <div className="bg-gray-100 px-5 py-2 rounded-md">
+    <div className="page-grid grid-cols-1 xl:grid-cols-2">
+      <div className="panel px-5 py-4">
         <div>
           <div className="flex justify-end items-center h-8 mb-3">
             <button
-              className="px-3 bg-white border border-black h-full text-md rounded-sm uppercase font-medium text-gray-700 flex items-center justify-start"
+              className="px-3 bg-[#f3f8ff] border border-[#cfe0f7] h-full text-sm rounded-md uppercase font-semibold text-[#1f3d66] flex items-center justify-start"
               onClick={fetchData}
             >
               {branchLoading && headOfficeLoading ? (
@@ -135,28 +135,28 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <h1 className="text-3xl text-purple-700 mt-5 text-center font-semibold">
+        <h1 className="brand-heading text-3xl text-[#1f4d8f] mt-6 text-center font-semibold">
           Kartika Associates
         </h1>
-        <h1 className="text-xl text-gray-800 mt-2 text-center font-medium">
+        <h1 className="text-xl text-[#32496d] mt-2 text-center font-medium">
           Design & Developed By{" "}
           <a
             href="https://5techg.com"
             target="_blank"
-            className="hover:underline text-indigo-500"
+            className="hover:underline text-[#1f6feb]"
             rel="noreferrer"
           >
             5TechG Team
           </a>
         </h1>
-        <h1 className="text-lg text-gray-800 text-center font-medium">
+        <h1 className="text-lg text-[#32496d] text-center font-medium">
           Contact Us :- 7028828831
         </h1>
-        <h1 className="text-md text-orange-500 text-center font-medium">
+        <h1 className="text-md text-[#ff7a1a] text-center font-medium">
           Let's Build Together
         </h1>
       </div>
-      <div className="bg-gray-100 px-5 py-2 rounded-md">
+      <div className="panel px-5 py-4">
         <div className="flex justify-between items-center h-8 mb-3">
           <input
             value={date}
@@ -164,10 +164,10 @@ const Dashboard = () => {
               dispatch(setDate(e.target.value));
             }}
             type="date"
-            className="outline-none h-full ps-3 pe-3 text-md rounded-sm select-none"
+            className="h-full ps-3 pe-3 text-md rounded-md select-none"
           ></input>
           <button
-            className="px-3 bg-white border border-black h-full text-md rounded-sm uppercase font-medium text-gray-700 flex items-center justify-start"
+            className="px-3 bg-[#f3f8ff] border border-[#cfe0f7] h-full text-sm rounded-md uppercase font-semibold text-[#1f3d66] flex items-center justify-start"
             onClick={fetchUserLastLocation}
           >
             {lastLocationLoading ? (
@@ -178,7 +178,7 @@ const Dashboard = () => {
             Refresh
           </button>
         </div>
-        <div style={{ height: "85vh" }}>
+        <div style={{ height: "80vh" }}>
           <MapInfo data={lastLocations} />
         </div>
       </div>

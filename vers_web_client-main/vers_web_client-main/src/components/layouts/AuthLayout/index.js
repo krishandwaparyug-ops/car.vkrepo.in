@@ -3,7 +3,7 @@ import Views from "../../../views";
 
 const AuthLayout = (props) => {
   return (
-    <div className="flex flex-auto flex-col h-[100vh]">
+    <div className="auth-shell flex flex-auto flex-col h-[100vh]">
       <Views {...props} />
     </div>
   );

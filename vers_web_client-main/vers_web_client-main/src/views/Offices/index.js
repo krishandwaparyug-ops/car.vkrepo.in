@@ -26,11 +26,11 @@ const Offices = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-12 gap-2 pe-2 ps-2 h-96">
-      <div className="col-span-5 h-[85vh]">
+    <div className="page-grid grid-cols-1 xl:grid-cols-12 min-h-[80vh]">
+      <div className="panel xl:col-span-5 h-[85vh] p-2">
         <HeadOffice />
       </div>
-      <div className="col-span-7 h-[85vh]">
+      <div className="panel xl:col-span-7 h-[85vh] p-2">
         <Branch />
       </div>
     </div>
