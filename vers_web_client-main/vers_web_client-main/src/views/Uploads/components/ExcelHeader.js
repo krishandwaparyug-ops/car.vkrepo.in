@@ -146,7 +146,7 @@ const ExcelHeader = (props) => {
   const [searchText, setSearchText] = useState("");
 
   const isValid = checkValidHeaderValue(updatedValue, headerOptions).status;
-  const isDisabled = verifiedValidData.length > 0;
+  const isDisabled = false;
 
   const options = [
     {
