@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import CustomContextMenu from "./ContextMenu";
 const style = {
   height: "inherit",
@@ -48,13 +49,15 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
         background: "rgba(0,0,0,0.35)", zIndex: 9999,
         display: "flex", alignItems: "center", justifyContent: "center",
       }}
-      onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div style={{
-        background: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-        minWidth: 320, maxWidth: 400, width: "90%", padding: "20px 20px 12px 20px",
-        display: "flex", flexDirection: "column", maxHeight: "80vh",
-      }}>
+      <div
+        style={{
+          background: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+          minWidth: 320, maxWidth: 400, width: "90%", padding: "20px 20px 12px 20px",
+          display: "flex", flexDirection: "column", maxHeight: "80vh",
+        }}
+        onClick={(e) => e.stopPropagation()}>
         <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10, color: "#1c3a63" }}>
           Select Column Field
         </div>
@@ -198,7 +201,7 @@ const ExcelHeader = (props) => {
         </button>
       </CustomContextMenu>
 
-      {dialogOpen && (
+      {dialogOpen && ReactDOM.createPortal(
         <HeaderPickerDialog
           headerOptions={headerOptions}
           header={header}
@@ -206,7 +209,8 @@ const ExcelHeader = (props) => {
           onClose={() => { setDialogOpen(false); setSearchText(""); }}
           searchText={searchText}
           setSearchText={setSearchText}
-        />
+        />,
+        document.body
       )}
     </div>
   );
