@@ -139,10 +139,7 @@ const ExcelHeader = (props) => {
     verifiedValidData = [],
   } = props;
 
-  const [updatedValue, setUpdatedValue] = useState(() => {
-    if (!value) return "";
-    return checkValidHeaderValue(value, headerOptions).key;
-  });
+  const [updatedValue, setUpdatedValue] = useState("");
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
