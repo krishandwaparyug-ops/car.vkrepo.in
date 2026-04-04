@@ -25,4 +25,12 @@ module.exports = [
   "tbr",
   "poss",
   "bkt",
+  "customer_contact_nos",
+  "customer_address",
+  "seasoning",
+  "sender_mail_id_1",
+  "sender_mail_id_2",
+  "toss",
+  "remark",
+  "is_released",
 ];

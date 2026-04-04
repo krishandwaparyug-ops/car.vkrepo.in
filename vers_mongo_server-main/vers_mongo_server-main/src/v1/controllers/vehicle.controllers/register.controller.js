@@ -49,6 +49,9 @@ const processRow = (row, dateObj, branchIdObj) => {
         const clean = String(val).trim().replace(/[^a-zA-Z0-9]/g, "");
         newRow[key] = clean;
         newRow["last_four_digit_chassis"] = getLastFourChar(clean);
+      } else if (key === "is_released") {
+        const v = String(val).trim().toLowerCase();
+        newRow[key] = (v === "true" || v === "yes" || v === "1" || v === "y");
       } else {
         newRow[key] = val;
       }

@@ -143,6 +143,36 @@ const vehicleSchema = new Schema(
       trim: true,
       uppercase: true,
     },
+    customer_contact_nos: {
+      type: String,
+      trim: true,
+    },
+    customer_address: {
+      type: String,
+      trim: true,
+    },
+    seasoning: {
+      type: String,
+      trim: true,
+    },
+    sender_mail_id_1: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    sender_mail_id_2: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    toss: {
+      type: String,
+      trim: true,
+    },
+    remark: {
+      type: String,
+      trim: true,
+    },
     branch_id: {
       type: Schema.Types.ObjectId,
       ref: "Branch",

@@ -242,6 +242,14 @@ export const headerOptionsOfServer = [
   "ses17",
   "ses9",
   "tbr",
+  "customer_contact_nos",
+  "customer_address",
+  "seasoning",
+  "sender_mail_id_1",
+  "sender_mail_id_2",
+  "toss",
+  "remark",
+  "is_released",
 ];
 
 export const validRcRegexType = [

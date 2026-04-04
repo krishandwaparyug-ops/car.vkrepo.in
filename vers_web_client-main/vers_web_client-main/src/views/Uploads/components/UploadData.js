@@ -71,15 +71,20 @@ const UploadData = (props) => {
       const processLocalRow = (row) => {
         let newRow = { branch_id: selectedBranch, is_released: false, createdAt: uploadDateObj, updatedAt: uploadDateObj };
         header.forEach((h, idx) => {
-          const key = headerOptionsOfServer[idx] || h.toString().toLowerCase().replace(/[^a-z0-9]/g, "_");
-          const val = row[h] || row[idx];
-          if (val) {
+          const key = h.toString().toLowerCase().replace(/[^a-z0-9]/g, "_");
+          const val = row[h] !== undefined ? row[h] : row[idx];
+          if (val !== undefined && val !== null && val !== "") {
             if (key === "rc_no" || key === "chassis_no") {
               const clean = String(val).trim().replace(/[^a-zA-Z0-9]/g, "");
               const digits = clean.replace(/\D/g, "");
               newRow[key] = clean;
               newRow[key === "rc_no" ? "last_four_digit_rc" : "last_four_digit_chassis"] = String(parseInt(digits.slice(-4), 10) || 0);
-            } else newRow[key] = val;
+            } else if (key === "is_released") {
+              const v = String(val).trim().toLowerCase();
+              newRow[key] = (v === "true" || v === "yes" || v === "1" || v === "y");
+            } else {
+              newRow[key] = val;
+            }
           }
         });
         return newRow;
