@@ -50,7 +50,6 @@ export const headerOptions = [
       "agreementno",
       "loanno",
       "contractnumbe",
-      "contractnumbe",
       "contno",
       "loanrefno",
       "lan",
@@ -86,7 +85,7 @@ export const headerOptions = [
       "engnno",
     ],
   },
-  { "ex name": ["exname"] },
+  { "ex name": ["exname", "executivename"] },
   { financer: ["financer", "financier", "financename"] },
   { gv: ["gv"] },
   {
@@ -168,9 +167,50 @@ export const headerOptions = [
     ],
   },
   { region: ["region", "state", "zone"] },
-  { ses17: ["ses17"] },
-  { ses9: ["ses9"] },
-  { tbr: ["tbr"] },
+  { ses17: ["ses17", "sec17available"] },
+  { ses9: ["ses9", "sec9available"] },
+  { tbr: ["tbr", "tbrflag"] },
+  // ── Additional fields from the new CSV format ──────────────────────────
+  {
+    "customer contact nos": [
+      "customercontactnos",
+      "customermobile",
+      "customerphonenumber",
+      "customerphone",
+      "custphone",
+      "custmobile",
+      "customerno",
+    ],
+  },
+  {
+    "customer address": [
+      "customeraddress",
+      "address",
+      "custaddress",
+      "custaddr",
+      "customeraddr",
+    ],
+  },
+  { seasoning: ["seasoning"] },
+  {
+    "sender mail id 1": [
+      "sendermailid1",
+      "sendermail1",
+      "email1",
+      "senderemail1",
+    ],
+  },
+  {
+    "sender mail id 2": [
+      "sendermailid2",
+      "sendermail2",
+      "email2",
+      "senderemail2",
+    ],
+  },
+  { toss: ["toss"] },
+  { remark: ["remark", "remarks", "comment", "comments", "note", "notes"] },
+  { "is released": ["isreleased", "released"] },
 ];
 
 

@@ -11,6 +11,7 @@ import { apiGetHeader } from "../../services/VehicleServices";
 import { injectReducer } from "../../store";
 import OfficeReducer from "../Offices/store";
 import { CgSpinner } from "react-icons/cg";
+import { headerOptions as staticHeaderOptions } from "./constants";
 const WIDTH_SIZE = 10;
 injectReducer("office", OfficeReducer);
 
@@ -72,19 +73,30 @@ const Uploads = () => {
     try {
       const response = await apiGetHeader();
       if (response?.status === 200) {
-        setHeaderOptions(
-          Object.keys(response.data.data[0])
-            .map((element) => {
-              if (!["__v", "updatedAt", "createdAt", "_id"].includes(element))
-                return {
-                  [element.toString()?.split("_").join(" ")]:
-                    response.data.data[0][element],
-                };
-            })
-            .filter(Boolean)
+        const serverOptions = Object.keys(response.data.data[0])
+          .map((element) => {
+            if (!["__v", "updatedAt", "createdAt", "_id"].includes(element))
+              return {
+                [element.toString()?.split("_").join(" ")]:
+                  response.data.data[0][element],
+              };
+          })
+          .filter(Boolean);
+
+        // Merge server options with static options from constants.js
+        // Static entries that are NOT already present in server options get appended
+        const serverKeys = serverOptions.map((o) => Object.keys(o)[0]);
+        const extraStatic = staticHeaderOptions.filter(
+          (o) => !serverKeys.includes(Object.keys(o)[0])
         );
+        setHeaderOptions([...serverOptions, ...extraStatic]);
+      } else {
+        // Fallback to static options if server call fails
+        setHeaderOptions(staticHeaderOptions);
       }
-    } catch (error) { }
+    } catch (error) {
+      setHeaderOptions(staticHeaderOptions);
+    }
   };
 
   useEffect(() => {
