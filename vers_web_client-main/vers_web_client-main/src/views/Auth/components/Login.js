@@ -106,18 +106,8 @@ const Login = () => {
     <div className="flex justify-center items-center h-full w-full px-4">
       <div className="p-6 w-full max-w-md h-fit rounded-2xl border border-[#dbe5f4] bg-white shadow-[0_20px_40px_rgba(17,34,64,0.14)]">
         <h3 className="brand-heading text-center mb-2 font-semibold text-2xl text-[#183c69]">
-          Welcome to <span className="text-[#1f6feb]">loopwar.dev</span>
+          Welcome to <span className="text-[#1f6feb]">Vers</span>
         </h3>
-        <div className="mb-3 flex justify-center">
-          <a
-            href="https://loopwar.dev"
-            target="_blank"
-            rel="noreferrer"
-            className="brand-link-highlight"
-          >
-            Open loopwar.dev
-          </a>
-        </div>
         <h3 className="text-center mb-4 font-semibold text-sm text-[#376a27] capitalize">
           {type} based login
         </h3>

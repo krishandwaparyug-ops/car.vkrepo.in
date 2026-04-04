@@ -25,16 +25,8 @@ const Header = (props) => {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="brand-heading text-[17px] font-semibold text-[#1d3f72]">
-              loopwar.dev Control Center
+              Vers Control Center
             </div>
-            <a
-              href="https://loopwar.dev"
-              target="_blank"
-              rel="noreferrer"
-              className="brand-link-highlight"
-            >
-              loopwar.dev
-            </a>
           </div>
           <div className="header-action header-action-start">{headerStart}</div>
         </div>

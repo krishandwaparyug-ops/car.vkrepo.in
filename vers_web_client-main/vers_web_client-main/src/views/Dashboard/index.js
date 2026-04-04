@@ -135,10 +135,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <h1 className="brand-heading text-3xl text-[#1f4d8f] mt-6 text-center font-semibold">
-          loopwar.dev
-        </h1>
-        <h1 className="text-xl text-[#32496d] mt-2 text-center font-medium">
+        <h1 className="text-xl text-[#32496d] mt-6 text-center font-medium">
           Design & Developed By{" "}
           <a
             href="https://5techg.com"
@@ -149,16 +146,6 @@ const Dashboard = () => {
             5TechG Team
           </a>
         </h1>
-        <div className="mt-3 flex justify-center">
-          <a
-            href="https://loopwar.dev"
-            target="_blank"
-            rel="noreferrer"
-            className="brand-link-highlight"
-          >
-            Visit https://loopwar.dev
-          </a>
-        </div>
       </div>
       <div className="panel px-5 py-4">
         <div className="flex justify-between items-center h-8 mb-3">
