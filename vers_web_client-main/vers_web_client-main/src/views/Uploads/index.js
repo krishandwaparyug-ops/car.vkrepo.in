@@ -24,6 +24,7 @@ const Uploads = () => {
   const [headerOptions, setHeaderOptions] = useState([]);
   const [desc, setDesc] = useState(null);
   const [rawFile, setRawFile] = useState(null);
+  const [isVerifyClicked, setIsVerifyClicked] = useState(false);
 
   const parentRef = React.useRef();
 
@@ -112,6 +113,7 @@ const Uploads = () => {
           setFileData={setFileData}
           setVerifiedValidData={setVerifiedValidData}
           setRawFile={setRawFile}
+          setIsVerifyClicked={setIsVerifyClicked}
         />
         {/* <CountButton label="Opening" data={`${count}`} /> */}
         <CountButton
@@ -128,6 +130,7 @@ const Uploads = () => {
           data={fileData}
           setFileData={setFileData}
           setVerifiedValidData={setVerifiedValidData}
+          setIsVerifyBtnClick={setIsVerifyClicked}
         />
         <BranchSelect setSelectedBranch={setSelectedBranch} />
         <UploadData
@@ -190,6 +193,7 @@ const Uploads = () => {
                               onDeleteData={onDeleteData}
                               defaultFileHeader={defaultFileHeader}
                               verifiedValidData={verifiedValidData}
+                              isVerifyClicked={isVerifyClicked}
                               header={fileData[0]?.map((value) =>
                                 value?.toString()?.toLowerCase()
                               )}

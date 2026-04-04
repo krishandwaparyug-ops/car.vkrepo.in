@@ -8,6 +8,7 @@ const FileReader = (props) => {
     setVerifiedValidData,
     setLoading,
     setRawFile,
+    setIsVerifyClicked,
   } = props;
 
   const handleFileChange = (e) => {
@@ -17,6 +18,7 @@ const FileReader = (props) => {
     }
     setFileData?.([]);
     setVerifiedValidData?.([]);
+    setIsVerifyClicked?.(false);
     setLoading?.(true);
     setRawFile?.(file);
 

@@ -137,6 +137,7 @@ const ExcelHeader = (props) => {
     headerOptions = [],
     defaultFileHeader = [],
     verifiedValidData = [],
+    isVerifyClicked = false,
   } = props;
 
   const [updatedValue, setUpdatedValue] = useState("");
@@ -178,9 +179,9 @@ const ExcelHeader = (props) => {
           onClick={() => { if (!isDisabled) { setSearchText(""); setDialogOpen(true); } }}
           style={{
             ...style,
-            background: isValid ? "yellow" : "#f5f5f5",
+            background: isValid ? "yellow" : (isVerifyClicked && !updatedValue) ? "#ffe0e0" : "#f5f5f5",
+            border: (isVerifyClicked && !updatedValue) ? "1.5px solid #e53e3e" : "1px solid #ccc",
             cursor: isDisabled ? "default" : "pointer",
-            border: "1px solid #ccc",
             textAlign: "left",
             fontSize: 13,
             padding: "0 6px",
