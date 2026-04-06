@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import BaseService from "../../../services/BaseService";
 import { toast } from "react-toastify";
-import { headerOptionsOfServer } from "../constants";
+import { headerOptions, headerOptionsOfServer } from "../constants";
 import { apiUpdateHeader } from "../../../services/VehicleServices";
 import { CgSpinner } from "react-icons/cg";
 
@@ -19,8 +19,61 @@ const sanitizeHeaderKey = (value = "") => {
     ?.replace(/^_+|_+$/g, "");
 };
 
-const normalizeBranchKey = (value = "") => {
+const normalizeTextKey = (value = "") => {
   return value?.toString()?.trim()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
+};
+
+const buildHeaderAliasMap = () => {
+  const aliasMap = new Map();
+
+  headerOptions.forEach((option) => {
+    const displayKey = Object.keys(option)?.[0];
+    const aliases = Object.values(option)?.[0] || [];
+    const serverKey = sanitizeHeaderKey(displayKey);
+
+    if (!serverKey || !headerOptionsOfServer.includes(serverKey)) {
+      return;
+    }
+
+    const normalizedDisplay = normalizeTextKey(displayKey);
+    const normalizedServer = normalizeTextKey(serverKey);
+
+    if (normalizedDisplay) aliasMap.set(normalizedDisplay, serverKey);
+    if (normalizedServer) aliasMap.set(normalizedServer, serverKey);
+
+    aliases.forEach((alias) => {
+      const normalizedAlias = normalizeTextKey(alias);
+      if (normalizedAlias) aliasMap.set(normalizedAlias, serverKey);
+    });
+  });
+
+  headerOptionsOfServer.forEach((serverKey) => {
+    const normalizedServer = normalizeTextKey(serverKey);
+    if (normalizedServer) aliasMap.set(normalizedServer, serverKey);
+  });
+
+  return aliasMap;
+};
+
+const headerAliasMap = buildHeaderAliasMap();
+
+const resolveServerHeaderKey = (columnName, fallbackColumnName) => {
+  const candidates = [columnName, fallbackColumnName];
+
+  for (const candidate of candidates) {
+    if (candidate === undefined || candidate === null) continue;
+
+    const normalizedCandidate = normalizeTextKey(candidate);
+    if (!normalizedCandidate) continue;
+
+    const mappedKey = headerAliasMap.get(normalizedCandidate);
+    if (mappedKey) return mappedKey;
+
+    const sanitized = sanitizeHeaderKey(candidate);
+    if (headerOptionsOfServer.includes(sanitized)) return sanitized;
+  }
+
+  return null;
 };
 
 const chunkArray = (input = [], size = CHUNK_SIZE) => {
@@ -87,15 +140,13 @@ const UploadData = (props) => {
       return;
     }
 
+    const resolvedColumnKeys = safeHeader.map((columnName, index) =>
+      resolveServerHeaderKey(columnName, defaultFileHeader?.[index])
+    );
+
     for (let i = 0; i < safeHeader.length; i++) {
-      const headerKey = safeHeader[i]
-        ?.toString()
-        ?.replace(/[^a-zA-Z0-9]/g, " ")
-        .toLowerCase()
-        .trim()
-        .split(" ")
-        .join("_");
-      if (headerOptionsOfServer.includes(headerKey)) {
+      const headerKey = resolvedColumnKeys[i];
+      if (headerKey) {
         const valueKey = defaultFileHeader[i]
           ?.toString()
           ?.replace(/[^a-zA-Z0-9]/g, "")
@@ -119,7 +170,9 @@ const UploadData = (props) => {
         };
 
         safeHeader.forEach((h, idx) => {
-          const key = sanitizeHeaderKey(h);
+          const key = resolvedColumnKeys[idx];
+          if (!key) return;
+
           const val = getRowValue(row, h, idx);
           if (val !== undefined && val !== null && val !== "") {
             if (key === "rc_no" || key === "chassis_no") {
@@ -147,8 +200,8 @@ const UploadData = (props) => {
         );
         groupsToUpload = [{ branchId: selectedBranch, rows: branchRows }];
       } else {
-        const branchColumnIndex = safeHeader.findIndex(
-          (columnName) => sanitizeHeaderKey(columnName) === "branch"
+        const branchColumnIndex = resolvedColumnKeys.findIndex(
+          (columnKey) => columnKey === "branch"
         );
 
         if (branchColumnIndex < 0) {
@@ -163,9 +216,16 @@ const UploadData = (props) => {
         const branchMap = new Map();
 
         branches.forEach((item) => {
-          const key = normalizeBranchKey(item?.name);
-          if (key && !branchMap.has(key)) {
-            branchMap.set(key, item?._id);
+          const branchId = item?._id?.toString();
+          const nameKey = normalizeTextKey(item?.name);
+
+          if (nameKey && branchId && !branchMap.has(nameKey)) {
+            branchMap.set(nameKey, branchId);
+          }
+
+          const idKey = normalizeTextKey(branchId);
+          if (idKey && branchId && !branchMap.has(idKey)) {
+            branchMap.set(idKey, branchId);
           }
         });
 
@@ -176,7 +236,7 @@ const UploadData = (props) => {
             safeHeader[branchColumnIndex],
             branchColumnIndex
           );
-          const branchKey = normalizeBranchKey(rawBranchValue);
+          const branchKey = normalizeTextKey(rawBranchValue);
           const resolvedBranchId = branchMap.get(branchKey);
 
           if (!resolvedBranchId) {
