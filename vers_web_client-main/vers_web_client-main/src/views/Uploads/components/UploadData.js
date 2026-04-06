@@ -23,6 +23,79 @@ const normalizeTextKey = (value = "") => {
   return value?.toString()?.trim()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
 };
 
+const tokenizeText = (value = "") => {
+  return value
+    ?.toString()
+    ?.toLowerCase()
+    ?.replace(/[^a-z0-9]+/g, " ")
+    ?.trim()
+    ?.split(/\s+/)
+    ?.filter(Boolean);
+};
+
+const buildBranchResolver = (branches = []) => {
+  const exactMap = new Map();
+  const entries = [];
+
+  branches.forEach((item) => {
+    const id = item?._id?.toString();
+    if (!id) return;
+
+    const name = item?.name || "";
+    const normalizedName = normalizeTextKey(name);
+    const tokens = tokenizeText(name);
+
+    exactMap.set(normalizeTextKey(id), id);
+    if (normalizedName && !exactMap.has(normalizedName)) {
+      exactMap.set(normalizedName, id);
+    }
+
+    entries.push({ id, normalizedName, tokens });
+  });
+
+  const resolve = (rawValue) => {
+    const normalizedRaw = normalizeTextKey(rawValue);
+    if (!normalizedRaw) return null;
+
+    const exact = exactMap.get(normalizedRaw);
+    if (exact) return exact;
+
+    const containsMatches = entries.filter(
+      (entry) =>
+        (entry.normalizedName && entry.normalizedName.includes(normalizedRaw)) ||
+        (entry.normalizedName && normalizedRaw.includes(entry.normalizedName))
+    );
+
+    if (containsMatches.length === 1) {
+      return containsMatches[0].id;
+    }
+
+    const rawTokens = tokenizeText(rawValue);
+    if (rawTokens.length > 0) {
+      const scored = entries
+        .map((entry) => {
+          const overlap = rawTokens.filter((token) =>
+            entry.tokens.includes(token)
+          ).length;
+          return { id: entry.id, overlap };
+        })
+        .filter((entry) => entry.overlap > 0)
+        .sort((a, b) => b.overlap - a.overlap);
+
+      if (
+        scored.length > 0 &&
+        (scored.length === 1 || scored[0].overlap > scored[1].overlap)
+      ) {
+        return scored[0].id;
+      }
+    }
+
+    return null;
+  };
+
+  return { resolve };
+};
+
 const buildHeaderAliasMap = () => {
   const aliasMap = new Map();
 
@@ -213,21 +286,7 @@ const UploadData = (props) => {
         setDesc?.("Resolving Branch...");
         const branchRes = await BaseService.post("/v1/branch/all", {});
         const branches = branchRes?.data?.data || [];
-        const branchMap = new Map();
-
-        branches.forEach((item) => {
-          const branchId = item?._id?.toString();
-          const nameKey = normalizeTextKey(item?.name);
-
-          if (nameKey && branchId && !branchMap.has(nameKey)) {
-            branchMap.set(nameKey, branchId);
-          }
-
-          const idKey = normalizeTextKey(branchId);
-          if (idKey && branchId && !branchMap.has(idKey)) {
-            branchMap.set(idKey, branchId);
-          }
-        });
+        const { resolve: resolveBranchId } = buildBranchResolver(branches);
 
         const groupedMap = new Map();
         verifiedValidData.forEach((row) => {
@@ -236,8 +295,7 @@ const UploadData = (props) => {
             safeHeader[branchColumnIndex],
             branchColumnIndex
           );
-          const branchKey = normalizeTextKey(rawBranchValue);
-          const resolvedBranchId = branchMap.get(branchKey);
+          const resolvedBranchId = resolveBranchId(rawBranchValue);
 
           if (!resolvedBranchId) {
             unresolvedBranches.add(
@@ -252,6 +310,17 @@ const UploadData = (props) => {
           }
           groupedMap.get(resolvedBranchId).push(processed);
         });
+
+        if (groupedMap.size === 0 && branches.length === 1) {
+          const onlyBranchId = branches?.[0]?._id?.toString();
+          if (onlyBranchId) {
+            groupedMap.set(
+              onlyBranchId,
+              verifiedValidData.map((row) => processLocalRow(row, onlyBranchId))
+            );
+            unresolvedBranches = new Set();
+          }
+        }
 
         groupedMap.forEach((rows, branchId) => {
           groupsToUpload.push({ branchId, rows });
