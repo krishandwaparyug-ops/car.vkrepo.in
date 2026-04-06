@@ -1,7 +1,7 @@
 
 import React, { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { setBranch, setQuery, setType } from "../../../store/stateSlice";
+import { setBranch, setData, setPageIndex, setQuery, setType } from "../../../store/stateSlice";
 import { allBranch } from "../../../../Offices/store/dataSlice";
 import sortData from "../../../../../utils/sortFunction";
 
@@ -16,11 +16,23 @@ const TableSearch = (props) => {
     (state) => state.vehicle.state.searchQuery.branchId
   );
   const handleOnChange = (e) => {
-    dispatch(setQuery(e.target.value));
-    if (e.target.value?.length === 4) {
-      fetchData?.(1, e.target.value, type, branchId);
+    const value = e.target.value;
+    dispatch(setQuery(value));
+
+    if (value?.trim()?.length >= 2) {
+      fetchData?.(1, value, type, branchId);
+    } else {
+      dispatch(setData([]));
+      dispatch(setPageIndex(1));
     }
   };
+
+  useEffect(() => {
+    if (query?.trim()?.length >= 2) {
+      fetchData?.(1, query, type, branchId);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, branchId]);
 
   useEffect(() => {
     if (branch?.length === 0) {
@@ -41,14 +53,12 @@ const TableSearch = (props) => {
   return (
     <div className="h-10 bg-blue-500 flex gap-2 items-center p-1 rounded-t-sm">
       <input
-        minLength={4}
-        maxLength={4}
         className="h-full outline-none ps-2 pe-2 rounded-sm text-md"
         onChange={handleOnChange}
         value={query}
         placeholder={`Search by ${
           type === "rc_no" ? "RC No" : "Chassis No"
-        }...`}
+        } (last 4 or full)...`}
       ></input>
       <select
         required={true}

@@ -7,6 +7,54 @@ const fs = require("fs");
 const { Transform } = require("json2csv");
 const { pipeline } = require("stream");
 
+const escapeRegExp = (value = "") => {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const sanitizeAlphaNum = (value = "") => {
+  return String(value).toUpperCase().replace(/[^A-Z0-9]/g, "");
+};
+
+const getLastFourDigits = (value = "") => {
+  const digits = String(value).replace(/\D/g, "");
+  if (!digits) return null;
+  return String(parseInt(digits.slice(-4), 10) || 0);
+};
+
+const buildVehicleSearchQuery = (rawSearch, type) => {
+  const searchTerm = String(rawSearch || "").trim();
+  if (!searchTerm) return null;
+
+  const sanitized = sanitizeAlphaNum(searchTerm);
+  const fullField = type === "chassis_no" ? "chassis_no" : "rc_no";
+  const lastFourField =
+    type === "chassis_no" ? "last_four_digit_chassis" : "last_four_digit_rc";
+
+  const orConditions = [];
+
+  const lastFour = getLastFourDigits(sanitized || searchTerm);
+  if (lastFour !== null) {
+    const parsed = parseInt(lastFour, 10);
+    orConditions.push({ [lastFourField]: { $in: [lastFour, parsed, String(parsed)] } });
+  }
+
+  const upperText = searchTerm.toUpperCase();
+  const escapedUpperText = escapeRegExp(upperText);
+  if (escapedUpperText) {
+    orConditions.push({ [fullField]: { $regex: escapedUpperText, $options: "i" } });
+  }
+
+  if (sanitized && sanitized !== upperText) {
+    const escapedSanitized = escapeRegExp(sanitized);
+    if (escapedSanitized) {
+      orConditions.push({ [fullField]: { $regex: escapedSanitized, $options: "i" } });
+    }
+  }
+
+  if (orConditions.length === 0) return null;
+  return { $or: orConditions };
+};
+
 // GET VEHICLES BY ADMIN ON SEARCH
 const getVehiclesByAdminOnSearch = async (req, res, next) => {
   try {
@@ -24,17 +72,24 @@ const getVehiclesByAdminOnSearch = async (req, res, next) => {
     const page = parseInt(pageIndex) || 1;
     const limit = parseInt(pageSize) || 50;
 
-    let searchType = "last_four_digit_rc";
-    if (type === "chassis_no") searchType = "last_four_digit_chassis";
+    const searchQuery = buildVehicleSearchQuery(searchTerm, type);
+    if (!searchQuery) {
+      return res.status(200).json({ data: [] });
+    }
 
-    const parsed = parseInt(searchTerm);
-    const matchQuery = {
-      [searchType]: { $in: [parsed, String(parsed)] },
-    };
+    const andFilters = [searchQuery];
 
     if (branchId) {
-      matchQuery.branch_id = new mongoose.Types.ObjectId(branchId);
+      if (!checkObjectId(branchId)) {
+        return next(responseError(406, "Invalid branch Id"));
+      }
+      const branchObjectId = new mongoose.Types.ObjectId(branchId);
+      andFilters.push({
+        $or: [{ branch_id: branchObjectId }, { branch_id: branchId }],
+      });
     }
+
+    const matchQuery = andFilters.length === 1 ? andFilters[0] : { $and: andFilters };
 
     const vehicles = await Vehicle.find(matchQuery)
       .select("_id rc_no mek_and_model chassis_no")
@@ -60,13 +115,12 @@ const getVehiclesByUserOnSearch = async (req, res, next) => {
     const page = parseInt(pageIndex) || 1;
     const limit = parseInt(pageSize) || 10;
 
-    let searchType = "last_four_digit_rc";
-    if (type === "chassis_no") searchType = "last_four_digit_chassis";
+    const searchQuery = buildVehicleSearchQuery(query, type);
+    if (!searchQuery) {
+      return res.status(200).json({ data: [] });
+    }
 
-    const parsed = parseInt(query);
-    const vehicles = await Vehicle.find({
-      [searchType]: { $in: [parsed, String(parsed)] },
-    })
+    const vehicles = await Vehicle.find(searchQuery)
       .select("_id rc_no chassis_no mek_and_model")
       .sort({ _id: -1 })
       .skip((page - 1) * limit)
