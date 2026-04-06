@@ -1,14 +1,50 @@
 import React, { useState } from "react";
 import BaseService from "../../../services/BaseService";
-import appConfig from "../../../configs/app.config";
 import { toast } from "react-toastify";
 import { headerOptionsOfServer } from "../constants";
 import { apiUpdateHeader } from "../../../services/VehicleServices";
 import { CgSpinner } from "react-icons/cg";
 
-import Papa from "papaparse";
-
 const notify = (message, type = "error") => toast[type](message);
+
+const CHUNK_SIZE = 5000;
+const CHUNK_CONCURRENCY = 8;
+
+const sanitizeHeaderKey = (value = "") => {
+  return value
+    ?.toString()
+    ?.toLowerCase()
+    ?.replace(/[^a-z0-9]/g, "_")
+    ?.replace(/_+/g, "_")
+    ?.replace(/^_+|_+$/g, "");
+};
+
+const normalizeBranchKey = (value = "") => {
+  return value?.toString()?.trim()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
+};
+
+const chunkArray = (input = [], size = CHUNK_SIZE) => {
+  const chunks = [];
+  for (let i = 0; i < input.length; i += size) {
+    chunks.push(input.slice(i, i + size));
+  }
+  return chunks;
+};
+
+const getRowValue = (row, headerValue, index) => {
+  if (row && Object.prototype.hasOwnProperty.call(row, headerValue)) {
+    return row[headerValue];
+  }
+  return row?.[index];
+};
+
+const postChunk = (branchId, data, isFirstChunk) => {
+  return BaseService.post(`v1/vehicle/admin/insert/chunk`, {
+    branchId,
+    data,
+    isFirstChunk,
+  });
+};
 
 const updateHeader = async (header) => {
   try {
@@ -33,21 +69,26 @@ const UploadData = (props) => {
 
   const [loading, setLoading] = useState(false);
 
-  let percent = 0;
   const onUploadToServer = async () => {
     if (loading) return;
-    
+
     if (verifiedValidData.length < 1) {
       return notify("Please verify data");
     }
-    if (!selectedBranch) {
-      return notify("Please select branch");
-    }
+
     setLoading(true);
     setDesc("Updating Header...");
     const newUpdateHeaderToServer = {};
-    for (let i = 0; i < header.length; i++) {
-      const headerKey = header[i]
+    const safeHeader = Array.isArray(header) ? header : [];
+
+    if (safeHeader.length < 1) {
+      notify("Header not found in file");
+      setLoading(false);
+      return;
+    }
+
+    for (let i = 0; i < safeHeader.length; i++) {
+      const headerKey = safeHeader[i]
         ?.toString()
         ?.replace(/[^a-zA-Z0-9]/g, " ")
         .toLowerCase()
@@ -64,15 +105,22 @@ const UploadData = (props) => {
       }
     }
     await updateHeader(newUpdateHeaderToServer);
-    
+
     setDesc?.("Uploading Data... Starting...");
     try {
       const uploadDateObj = new Date();
-      const processLocalRow = (row) => {
-        let newRow = { branch_id: selectedBranch, is_released: false, createdAt: uploadDateObj, updatedAt: uploadDateObj };
-        header.forEach((h, idx) => {
-          const key = h.toString().toLowerCase().replace(/[^a-z0-9]/g, "_");
-          const val = row[h] !== undefined ? row[h] : row[idx];
+
+      const processLocalRow = (row, branchId) => {
+        let newRow = {
+          branch_id: branchId,
+          is_released: false,
+          createdAt: uploadDateObj,
+          updatedAt: uploadDateObj,
+        };
+
+        safeHeader.forEach((h, idx) => {
+          const key = sanitizeHeaderKey(h);
+          const val = getRowValue(row, h, idx);
           if (val !== undefined && val !== null && val !== "") {
             if (key === "rc_no" || key === "chassis_no") {
               const clean = String(val).trim().replace(/[^a-zA-Z0-9]/g, "");
@@ -90,33 +138,142 @@ const UploadData = (props) => {
         return newRow;
       };
 
-      const finalData = verifiedValidData.map(processLocalRow);
-      const CHUNK_SIZE = 5000;
-      const chunks = [];
-      for (let i = 0; i < finalData.length; i += CHUNK_SIZE) chunks.push(finalData.slice(i, i + CHUNK_SIZE));
+      let groupsToUpload = [];
+      let unresolvedBranches = new Set();
 
-      // First batch
+      if (selectedBranch) {
+        const branchRows = verifiedValidData.map((row) =>
+          processLocalRow(row, selectedBranch)
+        );
+        groupsToUpload = [{ branchId: selectedBranch, rows: branchRows }];
+      } else {
+        const branchColumnIndex = safeHeader.findIndex(
+          (columnName) => sanitizeHeaderKey(columnName) === "branch"
+        );
+
+        if (branchColumnIndex < 0) {
+          notify("Please select branch or map BRANCH column");
+          setDesc?.("");
+          return;
+        }
+
+        setDesc?.("Resolving Branch...");
+        const branchRes = await BaseService.post("/v1/branch/all", {});
+        const branches = branchRes?.data?.data || [];
+        const branchMap = new Map();
+
+        branches.forEach((item) => {
+          const key = normalizeBranchKey(item?.name);
+          if (key && !branchMap.has(key)) {
+            branchMap.set(key, item?._id);
+          }
+        });
+
+        const groupedMap = new Map();
+        verifiedValidData.forEach((row) => {
+          const rawBranchValue = getRowValue(
+            row,
+            safeHeader[branchColumnIndex],
+            branchColumnIndex
+          );
+          const branchKey = normalizeBranchKey(rawBranchValue);
+          const resolvedBranchId = branchMap.get(branchKey);
+
+          if (!resolvedBranchId) {
+            unresolvedBranches.add(
+              String(rawBranchValue || "").trim() || "(blank)"
+            );
+            return;
+          }
+
+          const processed = processLocalRow(row, resolvedBranchId);
+          if (!groupedMap.has(resolvedBranchId)) {
+            groupedMap.set(resolvedBranchId, []);
+          }
+          groupedMap.get(resolvedBranchId).push(processed);
+        });
+
+        groupedMap.forEach((rows, branchId) => {
+          groupsToUpload.push({ branchId, rows });
+        });
+      }
+
+      groupsToUpload = groupsToUpload.filter((group) => group.rows.length > 0);
+
+      if (groupsToUpload.length < 1) {
+        notify("No verified rows mapped to a valid branch");
+        setDesc?.("");
+        return;
+      }
+
+      const chunkPlan = groupsToUpload.map((group) => {
+        return {
+          branchId: group.branchId,
+          chunks: chunkArray(group.rows),
+        };
+      });
+
+      const totalChunks = chunkPlan.reduce(
+        (sum, group) => sum + group.chunks.length,
+        0
+      );
+      let completedChunks = 0;
+      let uploadedRowsCount = 0;
+
+      const updateProgress = () => {
+        completedChunks += 1;
+        const progress = Math.round((completedChunks / totalChunks) * 100);
+        setDesc?.(`Uploading Data... (${progress}%)`);
+      };
+
       setDesc?.("Uploading Data... (0%)");
-      const firstRes = await BaseService.post(`v1/vehicle/admin/insert/chunk`, { branchId: selectedBranch, data: chunks[0], isFirstChunk: true });
-      if (firstRes.status !== 200) throw new Error("Chunk failed");
 
-      // Parallel batches
-      if (chunks.length > 1) {
-         let completed = 1;
-         const remaining = chunks.slice(1);
-         const CONCURRENCY = 8; // Boost speed
-         for (let i = 0; i < remaining.length; i += CONCURRENCY) {
-            const group = remaining.slice(i, i + CONCURRENCY);
-            await Promise.all(group.map(async (chunk) => {
-               await BaseService.post(`v1/vehicle/admin/insert/chunk`, { branchId: selectedBranch, data: chunk, isFirstChunk: false });
-               completed++;
-               setDesc?.(`Uploading Data... (${Math.round((completed/chunks.length)*100)}%)`);
-            }));
-         }
+      for (const group of chunkPlan) {
+        const [firstChunk, ...restChunks] = group.chunks;
+
+        const firstRes = await postChunk(group.branchId, firstChunk, true);
+        if (firstRes.status !== 200) throw new Error("Chunk failed");
+        uploadedRowsCount += firstChunk.length;
+        updateProgress();
+
+        if (restChunks.length > 0) {
+          for (let i = 0; i < restChunks.length; i += CHUNK_CONCURRENCY) {
+            const parallelChunks = restChunks.slice(i, i + CHUNK_CONCURRENCY);
+            await Promise.all(
+              parallelChunks.map((chunk) =>
+                postChunk(group.branchId, chunk, false)
+              )
+            );
+            uploadedRowsCount += parallelChunks.reduce(
+              (sum, chunk) => sum + chunk.length,
+              0
+            );
+            completedChunks += parallelChunks.length;
+            const progress = Math.round((completedChunks / totalChunks) * 100);
+            setDesc?.(`Uploading Data... (${progress}%)`);
+          }
+        }
       }
 
       setDesc?.("");
-      notify("Upload Successfully", "success");
+
+      if (unresolvedBranches.size > 0) {
+        const unresolvedPreview = Array.from(unresolvedBranches)
+          .slice(0, 5)
+          .join(", ");
+        const remaining =
+          unresolvedBranches.size > 5
+            ? ` and ${unresolvedBranches.size - 5} more`
+            : "";
+        const skipped = verifiedValidData.length - uploadedRowsCount;
+        notify(
+          `Uploaded ${uploadedRowsCount} rows. Skipped ${skipped} rows due to unknown branch (${unresolvedPreview}${remaining}).`,
+          "warning"
+        );
+      } else {
+        notify("Upload Successfully", "success");
+      }
+
       setFileData?.([]);
       setVerifiedValidData?.([]);
       fetchHeader();
@@ -124,8 +281,9 @@ const UploadData = (props) => {
       console.error("[Upload] Error:", error);
       notify("Upload Failed - " + (error.response?.data?.message || "Check Connection"));
       setDesc?.("");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
