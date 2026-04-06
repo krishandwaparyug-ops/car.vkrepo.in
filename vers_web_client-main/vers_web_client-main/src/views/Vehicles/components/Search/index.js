@@ -3,7 +3,7 @@ import { apiGetVehiclesWithPagination } from "../../../../services/VehicleServic
 import SearchTable from "./components/SearchTable";
 import TableSearch from "./components/TableSearch";
 import { useSelector, useDispatch } from "react-redux";
-import { setData, setPageIndex, setQuery } from "../../store/stateSlice";
+import { setData, setPageIndex } from "../../store/stateSlice";
 const PAGE_SIZE = 50;
 
 const VehicleSearch = () => {
@@ -12,35 +12,50 @@ const VehicleSearch = () => {
   const [hasMore, setHasMore] = useState(true);
 
   const fetchData = async (pageIndex = 1, query, type, branchId) => {
+    const normalizedQuery = String(query || "").trim();
+
+    if (normalizedQuery.length < 2) {
+      dispatch(setData([]));
+      dispatch(setPageIndex(1));
+      setHasMore(false);
+      return false;
+    }
 
     try {
       const response = await apiGetVehiclesWithPagination({
-        searchTerm: query,
+        searchTerm: normalizedQuery,
         type: type,
         pageIndex,
         pageSize: PAGE_SIZE,
         branchId,
       });
+
       if (response.status === 200) {
+        const incomingData = Array.isArray(response?.data?.data)
+          ? response.data.data
+          : [];
+
         if (pageIndex === 1) {
-          dispatch(setData(response.data?.data));
-          setHasMore(true);
+          dispatch(setData(incomingData));
         } else {
-          dispatch(setData([...data, ...response.data.data]));
+          dispatch(setData([...(Array.isArray(data) ? data : []), ...incomingData]));
         }
-        if (response.data.data?.length < PAGE_SIZE) {
-          dispatch(setQuery(""));
-          setHasMore(false);
-        }
+
+        setHasMore(incomingData.length >= PAGE_SIZE);
         dispatch(setPageIndex(pageIndex + 1));
+        return true;
       } else {
-        dispatch(setQuery(""));
         dispatch(setData([]));
         setHasMore(false);
         dispatch(setPageIndex(1));
+        return false;
       }
-      return true;
-    } catch (error) {}
+    } catch (error) {
+      dispatch(setData([]));
+      setHasMore(false);
+      dispatch(setPageIndex(1));
+      return false;
+    }
   };
 
   return (
