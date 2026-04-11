@@ -32,14 +32,66 @@ const checkValidHeaderValue = (value, headerOptions = []) => {
   return headerStatus;
 };
 
+const normalizeSearchToken = (value = "") => {
+  return value?.toString()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
+};
+
+const fieldDisplayNameMap = {
+  "rc no": "VehicleNo",
+  "chassis no": "ChasisNo",
+  "mek and model": "Model",
+  "engine no": "EngineNo",
+  "contract no": "AgreementNo",
+  "customer name": "CustomerName",
+  "customer contact nos": "CustomerContactNos",
+  "customer address": "CustomerAddress",
+  region: "Region",
+  area: "Area",
+  bkt: "Bucket",
+  gv: "GV",
+  od: "OD",
+  branch: "BranchNameImptd",
+  level1: "Level1",
+  level1con: "Level1ContactNos",
+  level2: "Level2",
+  level2con: "Level2ContactNos",
+  level3: "Level3",
+  level3con: "Level3ContactNos",
+  level4: "Level4",
+  level4con: "Level4ContactNos",
+  ses9: "Sec9Available",
+  ses17: "Sec17Available",
+  tbr: "TBRFlag",
+  seasoning: "Seasoning",
+  "sender mail id 1": "SenderMailId1",
+  "sender mail id 2": "SenderMailId2",
+  "ex name": "ExecutiveName",
+  poss: "POS",
+  toss: "TOSS",
+  remark: "Remark",
+  "is released": "IsReleased",
+};
+
+const getDisplayName = (key = "") => {
+  return fieldDisplayNameMap[key] || key;
+};
+
 // Dialog that lists all universal column options
 const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchText, setSearchText }) => {
   const inputRef = useRef(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
+  const normalizedSearchText = normalizeSearchToken(searchText);
+
   const filtered = headerOptions.filter((val) => {
     const key = Object.keys(val)[0];
-    return key.toLowerCase().includes(searchText.toLowerCase());
+    const aliases = Array.isArray(Object.values(val)[0]) ? Object.values(val)[0] : [];
+    if (!normalizedSearchText) return true;
+
+    const candidates = [key, getDisplayName(key), ...aliases];
+    return candidates.some((candidate) =>
+      normalizeSearchToken(candidate).includes(normalizedSearchText)
+    );
   });
 
   return (
@@ -64,7 +116,7 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search..."
+          placeholder="Search by name (e.g., AgreementNo)"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           style={{
@@ -87,6 +139,7 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
           </div>
           {filtered.map((val, idx) => {
             const key = Object.keys(val)[0];
+            const label = getDisplayName(key);
             const alreadyUsed = header.includes(key);
             return (
               <div
@@ -103,8 +156,13 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
                 onMouseEnter={(e) => { if (!alreadyUsed) e.currentTarget.style.background = "#e8f0fc"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = alreadyUsed ? "#f9f9f9" : ""; }}
               >
-                {key.toUpperCase()}
+                {label}
                 {alreadyUsed ? " ✓" : ""}
+                {normalizeSearchToken(label) !== normalizeSearchToken(key) && (
+                  <div style={{ fontSize: 11, color: "#6b7280", marginTop: 1 }}>
+                    {key.toUpperCase()}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -144,6 +202,8 @@ const ExcelHeader = (props) => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
+
+  const selectedLabel = updatedValue ? getDisplayName(updatedValue) : "";
 
   const isValid = checkValidHeaderValue(updatedValue, headerOptions).status;
   const isDisabled = false;
@@ -189,9 +249,9 @@ const ExcelHeader = (props) => {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
           }}
-          title={updatedValue?.toString().toUpperCase() || defaultFileHeader?.[colIndex]?.toString().toUpperCase() || "Click to select"}
+          title={selectedLabel || defaultFileHeader?.[colIndex]?.toString().toUpperCase() || "Click to select"}
         >
-          {updatedValue?.toString().toUpperCase() || (
+          {selectedLabel || (
             <span style={{ color: "#aaa" }}>
               {defaultFileHeader?.[colIndex]?.toString().toUpperCase() || "Select..."}
             </span>

@@ -73,24 +73,54 @@ const Uploads = () => {
   const fetchHeader = async () => {
     try {
       const response = await apiGetHeader();
-      if (response?.status === 200) {
-        const serverOptions = Object.keys(response.data.data[0])
+      if (response?.status === 200 && response?.data?.data?.[0]) {
+        const serverHeaderConfig = response.data.data[0];
+
+        const toAliases = (value) => {
+          if (Array.isArray(value)) return value.filter(Boolean);
+          if (value === undefined || value === null || value === "") return [];
+          return [value.toString()];
+        };
+
+        const serverOptions = Object.keys(serverHeaderConfig)
           .map((element) => {
             if (!["__v", "updatedAt", "createdAt", "_id"].includes(element))
               return {
                 [element.toString()?.split("_").join(" ")]:
-                  response.data.data[0][element],
+                  toAliases(serverHeaderConfig[element]),
               };
           })
           .filter(Boolean);
 
-        // Merge server options with static options from constants.js
-        // Static entries that are NOT already present in server options get appended
-        const serverKeys = serverOptions.map((o) => Object.keys(o)[0]);
-        const extraStatic = staticHeaderOptions.filter(
-          (o) => !serverKeys.includes(Object.keys(o)[0])
+        // Merge by key and union aliases so static fallback aliases stay available.
+        const staticMap = new Map(
+          staticHeaderOptions.map((option) => {
+            const key = Object.keys(option)[0];
+            const aliases = Array.isArray(Object.values(option)[0])
+              ? Object.values(option)[0]
+              : [];
+            return [key, aliases];
+          })
         );
-        setHeaderOptions([...serverOptions, ...extraStatic]);
+
+        const mergedServerOptions = serverOptions.map((option) => {
+          const key = Object.keys(option)[0];
+          const serverAliases = Array.isArray(Object.values(option)[0])
+            ? Object.values(option)[0]
+            : [];
+          const staticAliases = staticMap.get(key) || [];
+          staticMap.delete(key);
+
+          return {
+            [key]: Array.from(new Set([...serverAliases, ...staticAliases])),
+          };
+        });
+
+        const remainingStaticOptions = Array.from(staticMap.entries()).map(
+          ([key, aliases]) => ({ [key]: aliases })
+        );
+
+        setHeaderOptions([...mergedServerOptions, ...remainingStaticOptions]);
       } else {
         // Fallback to static options if server call fails
         setHeaderOptions(staticHeaderOptions);
