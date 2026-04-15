@@ -39,6 +39,7 @@ const startLocalBuildServer = async () => {
         public: localBuildPath,
         cleanUrls: false,
         trailingSlash: false,
+        directoryListing: false,
       });
     });
 
@@ -99,7 +100,7 @@ const getAppUrl = async () => {
   try {
     const localUrl = await startLocalBuildServer();
     if (localUrl) {
-      return localUrl;
+      return `${localUrl}/index.html`;
     }
   } catch (_error) {
     // Fall back to remote URL when local build server cannot start.
