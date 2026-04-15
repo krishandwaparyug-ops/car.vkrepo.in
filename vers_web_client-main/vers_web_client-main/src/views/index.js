@@ -6,6 +6,7 @@ import { protectedRoutes, publicRoutes } from "../configs/route.configs";
 import appConfig from "../configs/app.config";
 import ProtectedRoute from './../components/route/ProtectedRoute';
 import { ToastContainer } from "react-toastify";
+import ThreeDotLoader from "../components/template/ThreeDotLoader";
 
 const { authenticatedEntryPath } = appConfig;
 const AllRoutes = (props) => {
@@ -54,7 +55,13 @@ const AllRoutes = (props) => {
 
 const View = (props) => {
   return (
-    <Suspense fallback={<div>loading</div>}>
+    <Suspense
+      fallback={
+        <div className="vk-loader-screen">
+          <ThreeDotLoader label="Loading VK Enterprises Software" />
+        </div>
+      }
+    >
       <AllRoutes {...props} />
       <ToastContainer position="top-center" hideProgressBar={true} />
     </Suspense>

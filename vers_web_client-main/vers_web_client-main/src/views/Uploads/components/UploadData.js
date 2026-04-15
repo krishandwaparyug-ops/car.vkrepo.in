@@ -191,16 +191,44 @@ const UploadData = (props) => {
     setFileData,
     fetchHeader,
     selectedBranch,
+    setUploadProgress,
   } = props;
 
   const [loading, setLoading] = useState(false);
 
+  const publishProgress = (payload = {}) => {
+    if (typeof setUploadProgress === "function") {
+      setUploadProgress((prev) => ({ ...prev, ...payload }));
+    }
+  };
+
   const onUploadToServer = async () => {
+    const uploadStartedAt = Date.now();
+
     if (loading) return;
 
     if (verifiedValidData.length < 1) {
+      publishProgress({
+        phase: "failed",
+        percent: 0,
+        uploadedRows: 0,
+        totalRows: 0,
+        startedAt: uploadStartedAt,
+        finishedAt: Date.now(),
+        message: "Please verify data before upload",
+      });
       return notify("Please verify data");
     }
+
+    publishProgress({
+      phase: "preparing",
+      percent: 0,
+      uploadedRows: 0,
+      totalRows: verifiedValidData.length,
+      startedAt: uploadStartedAt,
+      finishedAt: null,
+      message: "Preparing upload...",
+    });
 
     setLoading(true);
     setDesc("Updating Header...");
@@ -209,6 +237,11 @@ const UploadData = (props) => {
 
     if (safeHeader.length < 1) {
       notify("Header not found in file");
+      publishProgress({
+        phase: "failed",
+        finishedAt: Date.now(),
+        message: "Header not found in file",
+      });
       setLoading(false);
       return;
     }
@@ -280,6 +313,11 @@ const UploadData = (props) => {
         if (branchColumnIndex < 0) {
           notify("Please select branch or map BRANCH column");
           setDesc?.("");
+          publishProgress({
+            phase: "failed",
+            finishedAt: Date.now(),
+            message: "Branch is not mapped",
+          });
           return;
         }
 
@@ -332,6 +370,11 @@ const UploadData = (props) => {
       if (groupsToUpload.length < 1) {
         notify("No verified rows mapped to a valid branch");
         setDesc?.("");
+        publishProgress({
+          phase: "failed",
+          finishedAt: Date.now(),
+          message: "No rows mapped to valid branch",
+        });
         return;
       }
 
@@ -346,16 +389,34 @@ const UploadData = (props) => {
         (sum, group) => sum + group.chunks.length,
         0
       );
+      const totalUploadRows = chunkPlan.reduce(
+        (sum, group) => sum + group.chunks.reduce((chunkSum, chunk) => chunkSum + chunk.length, 0),
+        0
+      );
       let completedChunks = 0;
       let uploadedRowsCount = 0;
 
-      const updateProgress = () => {
-        completedChunks += 1;
+      const updateProgress = (nextCompletedChunks) => {
+        completedChunks = nextCompletedChunks;
         const progress = Math.round((completedChunks / totalChunks) * 100);
         setDesc?.(`Uploading Data... (${progress}%)`);
+        publishProgress({
+          phase: "uploading",
+          percent: progress,
+          uploadedRows: uploadedRowsCount,
+          totalRows: totalUploadRows,
+          message: `${uploadedRowsCount}/${totalUploadRows} rows uploaded`,
+        });
       };
 
       setDesc?.("Uploading Data... (0%)");
+      publishProgress({
+        phase: "uploading",
+        percent: 0,
+        uploadedRows: 0,
+        totalRows: totalUploadRows,
+        message: `0/${totalUploadRows} rows uploaded`,
+      });
 
       for (const group of chunkPlan) {
         const [firstChunk, ...restChunks] = group.chunks;
@@ -363,7 +424,7 @@ const UploadData = (props) => {
         const firstRes = await postChunk(group.branchId, firstChunk, true);
         if (firstRes.status !== 200) throw new Error("Chunk failed");
         uploadedRowsCount += firstChunk.length;
-        updateProgress();
+        updateProgress(completedChunks + 1);
 
         if (restChunks.length > 0) {
           for (let i = 0; i < restChunks.length; i += CHUNK_CONCURRENCY) {
@@ -377,9 +438,7 @@ const UploadData = (props) => {
               (sum, chunk) => sum + chunk.length,
               0
             );
-            completedChunks += parallelChunks.length;
-            const progress = Math.round((completedChunks / totalChunks) * 100);
-            setDesc?.(`Uploading Data... (${progress}%)`);
+            updateProgress(completedChunks + parallelChunks.length);
           }
         }
       }
@@ -403,6 +462,15 @@ const UploadData = (props) => {
         notify("Upload Successfully", "success");
       }
 
+      publishProgress({
+        phase: "success",
+        percent: 100,
+        uploadedRows: uploadedRowsCount,
+        totalRows: totalUploadRows,
+        finishedAt: Date.now(),
+        message: "Upload completed successfully",
+      });
+
       setFileData?.([]);
       setVerifiedValidData?.([]);
       fetchHeader();
@@ -410,6 +478,13 @@ const UploadData = (props) => {
       console.error("[Upload] Error:", error);
       notify("Upload Failed - " + (error.response?.data?.message || "Check Connection"));
       setDesc?.("");
+      publishProgress({
+        phase: "failed",
+        finishedAt: Date.now(),
+        message:
+          "Upload failed - " +
+          (error.response?.data?.message || "Please check connection"),
+      });
     } finally {
       setLoading(false);
     }

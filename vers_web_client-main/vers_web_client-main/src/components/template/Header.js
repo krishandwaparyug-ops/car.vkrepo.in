@@ -2,15 +2,19 @@ import React from "react";
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
 import useAuth from "./../../utils/hooks/useAuth";
+import appConfig from "../../configs/app.config";
+import { APP_NAME } from "../../constants/app.constant";
 
 const Header = (props) => {
   const { headerStart, headerEnd } = props;
   const { signOut } = useAuth();
+  const { desktopDownloadUrl } = appConfig;
 
   const links = [
     { to: "/", label: "Home" },
     { to: "/upload", label: "Upload" },
     { to: "/office", label: "Office" },
+    { to: "/master-view", label: "Master View All" },
     { to: "/vehicles", label: "Search" },
     { to: "/user", label: "User" },
     { to: "/file-info", label: "File Info" },
@@ -25,7 +29,7 @@ const Header = (props) => {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <div className="brand-heading text-[17px] font-semibold text-[#1d3f72]">
-              Vers Control Center
+              {APP_NAME}
             </div>
           </div>
           <div className="header-action header-action-start">{headerStart}</div>
@@ -51,6 +55,14 @@ const Header = (props) => {
         </ul>
 
         <div className="flex items-center justify-end gap-2">
+          <a
+            href={desktopDownloadUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="brand-link-highlight"
+          >
+            Download Windows App
+          </a>
           <div className="header-action header-action-end">{headerEnd}</div>
           <button
             className="min-h-[34px] cursor-pointer border border-[#f5c2c2] bg-[#fff1f1] px-3 text-sm font-semibold text-[#b42318] hover:bg-[#ffe3e3]"

@@ -1,8 +1,8 @@
 {
   "name": "react-app",
   "version": "0.1.0",
-  "description": "VK Repo Car desktop and web client",
-  "author": "VK Repo",
+  "description": "VK Enterprises Software desktop and web client",
+  "author": "VK Enterprises",
   "main": "electron/main.js",
   "private": true,
   "dependencies": {
@@ -80,7 +80,7 @@
   "build": {
     "extends": null,
     "appId": "in.vkrepo.car.desktop",
-    "productName": "VK Repo Car",
+    "productName": "VK Enterprises Software",
     "files": [
       "build/**/*",
       "electron/**/*",
@@ -90,6 +90,7 @@
       "output": "desktop-release"
     },
     "win": {
+      "icon": "public/favicon.ico",
       "target": [
         {
           "target": "nsis",
@@ -98,11 +99,14 @@
           ]
         }
       ],
-      "artifactName": "VKRepoCarSetup-${version}.${ext}"
+      "artifactName": "VKEnterprisesSoftwareSetup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "public/favicon.ico",
+      "uninstallerIcon": "public/favicon.ico",
+      "installerHeaderIcon": "public/favicon.ico"
     }
   }
 }

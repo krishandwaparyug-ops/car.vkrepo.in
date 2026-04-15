@@ -12,6 +12,11 @@ const pagesRoute = [
         component: React.lazy(() => import('../../views/Offices'))
     },
     {
+        key: 'master-view',
+        path: `/master-view`,
+        component: React.lazy(() => import('../../views/MasterView'))
+    },
+    {
         key: 'vehicle',
         path: `/vehicles`,
         component: React.lazy(() => import('../../views/Vehicles'))

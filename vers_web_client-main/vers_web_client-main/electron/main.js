@@ -70,7 +70,7 @@ const createErrorPage = (targetUrl, message) => {
     <html>
       <head>
         <meta charset="utf-8" />
-        <title>VK Repo Car</title>
+        <title>VK Enterprises Software</title>
         <style>
           body { font-family: Segoe UI, Arial, sans-serif; background: #eef4ff; color: #123; margin: 0; }
           .wrap { max-width: 720px; margin: 48px auto; background: #fff; border: 1px solid #d7e4fb; border-radius: 12px; padding: 24px; }
@@ -81,7 +81,7 @@ const createErrorPage = (targetUrl, message) => {
       </head>
       <body>
         <div class="wrap">
-          <h1>VK Repo Car</h1>
+          <h1>VK Enterprises Software</h1>
           <p>The app window opened, but loading failed.</p>
           <p><b>Reason:</b> ${safeMessage}</p>
           <p><b>Target:</b> <code>${safeUrl}</code></p>

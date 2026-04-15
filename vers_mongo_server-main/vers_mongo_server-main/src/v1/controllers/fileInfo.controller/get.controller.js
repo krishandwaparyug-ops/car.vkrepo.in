@@ -32,7 +32,6 @@ const getAllFileInfoByAdmin = async (req, res, next) => {
         },
       },
       { $sort: { createdAt: -1 } },
-      { $limit: 20 },
     ]);
     return res.status(200).json({ total: fileInfos.length, data: fileInfos });
   } catch (error) {
