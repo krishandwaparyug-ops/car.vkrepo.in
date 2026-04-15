@@ -1,10 +1,65 @@
 const { app, BrowserWindow, shell } = require("electron");
+const fs = require("fs");
+const http = require("http");
 const path = require("path");
+const serveHandler = require("serve-handler");
 
 const DEV_URL = process.env.ELECTRON_START_URL || "http://localhost:3000";
 const PROD_REMOTE_URL = process.env.DESKTOP_APP_URL || "https://car.vkrepo.in";
 
 let mainWindow = null;
+let localBuildServer = null;
+let localBuildUrl = "";
+
+const getLocalBuildPath = () => path.join(app.getAppPath(), "build");
+
+const stopLocalBuildServer = () => {
+  if (localBuildServer) {
+    localBuildServer.close();
+    localBuildServer = null;
+    localBuildUrl = "";
+  }
+};
+
+const startLocalBuildServer = async () => {
+  if (localBuildUrl) {
+    return localBuildUrl;
+  }
+
+  const localBuildPath = getLocalBuildPath();
+  const indexFile = path.join(localBuildPath, "index.html");
+
+  if (!fs.existsSync(indexFile)) {
+    return "";
+  }
+
+  const serverUrl = await new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => {
+      serveHandler(req, res, {
+        public: localBuildPath,
+        cleanUrls: false,
+        trailingSlash: false,
+      });
+    });
+
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = address && typeof address === "object" ? address.port : 0;
+      if (!port) {
+        server.close();
+        reject(new Error("Unable to allocate local build server port"));
+        return;
+      }
+
+      localBuildServer = server;
+      resolve(`http://127.0.0.1:${port}`);
+    });
+  });
+
+  localBuildUrl = serverUrl;
+  return serverUrl;
+};
 
 const createErrorPage = (targetUrl, message) => {
   const safeUrl = (targetUrl || "").toString();
@@ -41,6 +96,15 @@ const getAppUrl = async () => {
     return DEV_URL;
   }
 
+  try {
+    const localUrl = await startLocalBuildServer();
+    if (localUrl) {
+      return localUrl;
+    }
+  } catch (_error) {
+    // Fall back to remote URL when local build server cannot start.
+  }
+
   return PROD_REMOTE_URL;
 };
 
@@ -74,7 +138,7 @@ const createWindow = async () => {
     },
   });
 
-  const appUrl = await getAppUrl();
+  let appUrl = await getAppUrl();
   const showFallbackTimer = setTimeout(() => {
     if (mainWindow && !mainWindow.isDestroyed() && !mainWindow.isVisible()) {
       mainWindow.show();
@@ -97,7 +161,18 @@ const createWindow = async () => {
   try {
     await mainWindow.loadURL(appUrl);
   } catch (error) {
-    await mainWindow.loadURL(createErrorPage(appUrl, error?.message || "Load failed"));
+    if (appUrl !== PROD_REMOTE_URL) {
+      try {
+        appUrl = PROD_REMOTE_URL;
+        await mainWindow.loadURL(appUrl);
+      } catch (remoteError) {
+        await mainWindow.loadURL(
+          createErrorPage(appUrl, remoteError?.message || "Load failed")
+        );
+      }
+    } else {
+      await mainWindow.loadURL(createErrorPage(appUrl, error?.message || "Load failed"));
+    }
   }
 
   mainWindow.once("ready-to-show", () => {
@@ -143,10 +218,12 @@ if (!gotSingleInstanceLock) {
 }
 
 app.on("window-all-closed", () => {
+  stopLocalBuildServer();
   if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
 app.on("before-quit", () => {
+  stopLocalBuildServer();
 });
