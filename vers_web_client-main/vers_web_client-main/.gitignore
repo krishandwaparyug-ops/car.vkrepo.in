@@ -11,6 +11,11 @@
 
 # production
 /build
+/desktop-release
+/dist
+
+# desktop temp
+/.tmp-*.js
 
 # misc
 .DS_Store

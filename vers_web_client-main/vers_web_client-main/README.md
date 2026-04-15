@@ -29,6 +29,22 @@ Your app is ready to be deployed!
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
+### `npm run desktop:dev`
+
+Runs the React app and opens it as a desktop window using Electron.
+
+### `npm run desktop:start`
+
+Starts Electron directly (uses bundled build when available, otherwise falls back to production URL).
+
+### `npm run desktop:build`
+
+Builds the React app and then creates a Windows installer in the `desktop-release` folder.
+
+### `npm run desktop:pack`
+
+Builds an unpacked desktop app for local testing.
+
 ### `npm run eject`
 
 **Note: this is a one-way operation. Once you `eject`, you can't go back!**
