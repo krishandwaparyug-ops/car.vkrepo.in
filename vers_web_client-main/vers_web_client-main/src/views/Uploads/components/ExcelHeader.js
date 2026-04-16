@@ -38,7 +38,7 @@ const normalizeSearchToken = (value = "") => {
 
 const fieldDisplayNameMap = {
   "rc no": "VehicleNo",
-  "chassis no": "ChasisNo",
+  "chassis no": "ChassisNo",
   "mek and model": "Model",
   "engine no": "EngineNo",
   "contract no": "AgreementNo",
@@ -76,6 +76,13 @@ const getDisplayName = (key = "") => {
   return fieldDisplayNameMap[key] || key;
 };
 
+const priorityHeaderOrder = ["rc no", "chassis no"];
+
+const getHeaderOptionPriority = (key = "") => {
+  const index = priorityHeaderOrder.indexOf(key);
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+};
+
 // Dialog that lists all universal column options
 const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchText, setSearchText }) => {
   const inputRef = useRef(null);
@@ -92,6 +99,22 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
     return candidates.some((candidate) =>
       normalizeSearchToken(candidate).includes(normalizedSearchText)
     );
+  });
+
+  const orderedFiltered = [...filtered].sort((a, b) => {
+    const keyA = Object.keys(a)[0];
+    const keyB = Object.keys(b)[0];
+
+    const priorityA = getHeaderOptionPriority(keyA);
+    const priorityB = getHeaderOptionPriority(keyB);
+
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+
+    return getDisplayName(keyA)
+      .toString()
+      .localeCompare(getDisplayName(keyB).toString());
   });
 
   return (
@@ -137,7 +160,7 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
           >
             — Ignore this column —
           </div>
-          {filtered.map((val, idx) => {
+          {orderedFiltered.map((val, idx) => {
             const key = Object.keys(val)[0];
             const label = getDisplayName(key);
             const alreadyUsed = header.includes(key);

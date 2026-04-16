@@ -13,12 +13,93 @@ const normalizeText = (value = "") =>
 
 const notify = (type = "error", message = "") => toast[type](message);
 
+const isDateWithinRange = (dateValue, fromDate = "", toDate = "") => {
+  if (!fromDate && !toDate) return true;
+  if (!dateValue) return false;
+
+  const target = dayjs(dateValue);
+  if (!target.isValid()) return false;
+
+  if (fromDate && target.isBefore(dayjs(fromDate).startOf("day"))) {
+    return false;
+  }
+
+  if (toDate && target.isAfter(dayjs(toDate).endOf("day"))) {
+    return false;
+  }
+
+  return true;
+};
+
+const DateRangeFilter = ({ title, dateRange, setDateRange }) => {
+  const hasDateFilter = dateRange.from || dateRange.to;
+
+  return (
+    <div className="mb-3 rounded-lg border border-[#dbe5f4] bg-[#f8fbff] p-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#4f709b]">
+        {title}
+      </div>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-[#597da8]">
+            From
+          </label>
+          <input
+            type="date"
+            value={dateRange.from}
+            onChange={(e) =>
+              setDateRange((prev) => ({ ...prev, from: e.target.value }))
+            }
+            className="h-9 rounded-md border border-[#c9d8ef] bg-white px-2 text-sm text-[#1f3f67] outline-none"
+          />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-[11px] font-semibold uppercase tracking-wide text-[#597da8]">
+            To
+          </label>
+          <input
+            type="date"
+            value={dateRange.to}
+            onChange={(e) =>
+              setDateRange((prev) => ({ ...prev, to: e.target.value }))
+            }
+            className="h-9 rounded-md border border-[#c9d8ef] bg-white px-2 text-sm text-[#1f3f67] outline-none"
+          />
+        </div>
+        <button
+          className={`h-9 rounded-md border px-3 text-xs font-semibold uppercase tracking-wide ${
+            hasDateFilter
+              ? "border-[#f0b9b9] bg-[#fff1f1] text-[#b42318] hover:bg-[#ffe3e3]"
+              : "border-[#d4e0f3] bg-white text-[#5778a3]"
+          }`}
+          onClick={() => setDateRange({ from: "", to: "" })}
+          disabled={!hasDateFilter}
+        >
+          Clear Date Filter
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const MasterView = () => {
   const [loading, setLoading] = useState(false);
   const [headOffices, setHeadOffices] = useState([]);
   const [branches, setBranches] = useState([]);
   const [fileInfo, setFileInfo] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [headOfficeDateRange, setHeadOfficeDateRange] = useState({
+    from: "",
+    to: "",
+  });
+  const [branchDateRange, setBranchDateRange] = useState({
+    from: "",
+    to: "",
+  });
+  const [fileDateRange, setFileDateRange] = useState({
+    from: "",
+    to: "",
+  });
   const [lastRefreshedAt, setLastRefreshedAt] = useState(null);
 
   const fetchMasterData = async () => {
@@ -75,6 +156,17 @@ const MasterView = () => {
     }));
   }, [branches]);
 
+  const filteredHeadOfficeRows = useMemo(() => {
+    return branchByHeadOffice.filter((row) => {
+      const activityDate = row?.lastUpdatedAt || row?.updatedAt || row?.createdAt;
+      return isDateWithinRange(
+        activityDate,
+        headOfficeDateRange.from,
+        headOfficeDateRange.to
+      );
+    });
+  }, [branchByHeadOffice, headOfficeDateRange]);
+
   const fileRows = useMemo(() => {
     return fileInfo.map((file) => {
       const normalizedFileName = normalizeText(file?.file_name);
@@ -95,11 +187,17 @@ const MasterView = () => {
     });
   }, [fileInfo, branchLookupByName]);
 
+  const filteredFileRows = useMemo(() => {
+    return fileRows.filter((file) =>
+      isDateWithinRange(file?.createdAt, fileDateRange.from, fileDateRange.to)
+    );
+  }, [fileRows, fileDateRange]);
+
   const totalBranchRecords = useMemo(() => {
     return branches.reduce((sum, branch) => sum + Number(branch?.records || 0), 0);
   }, [branches]);
 
-  const filteredBranchRows = useMemo(() => {
+  const searchedBranchRows = useMemo(() => {
     if (!searchQuery.trim()) return branches;
     const q = searchQuery.toLowerCase().trim();
     return branches.filter((branch) => {
@@ -109,6 +207,16 @@ const MasterView = () => {
       );
     });
   }, [branches, searchQuery]);
+
+  const filteredBranchRows = useMemo(() => {
+    return searchedBranchRows.filter((branch) =>
+      isDateWithinRange(
+        branch?.updatedAt || branch?.createdAt,
+        branchDateRange.from,
+        branchDateRange.to
+      )
+    );
+  }, [searchedBranchRows, branchDateRange]);
 
   return (
     <div className="space-y-4">
@@ -163,6 +271,11 @@ const MasterView = () => {
 
       <div className="rounded-xl border border-[#d9e5f6] bg-white p-4 shadow-[0_12px_26px_rgba(17,34,64,0.08)]">
         <h2 className="text-lg font-semibold text-[#1d3f72] mb-3">Head Office Summary</h2>
+        <DateRangeFilter
+          title="Filter head office activity by date"
+          dateRange={headOfficeDateRange}
+          setDateRange={setHeadOfficeDateRange}
+        />
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -175,8 +288,8 @@ const MasterView = () => {
               </tr>
             </thead>
             <tbody>
-              {branchByHeadOffice.length ? (
-                branchByHeadOffice.map((row) => (
+              {filteredHeadOfficeRows.length ? (
+                filteredHeadOfficeRows.map((row) => (
                   <tr key={row._id} className="odd:bg-white even:bg-[#f8fbff]">
                     <td className="border border-[#d2dff2] p-2 font-semibold text-[#22466f]">{row?.name || "-"}</td>
                     <td className="border border-[#d2dff2] p-2 text-center">{row?.branchCount || 0}</td>
@@ -188,7 +301,7 @@ const MasterView = () => {
               ) : (
                 <tr>
                   <td colSpan="5" className="border border-[#d2dff2] p-6 text-center text-[#5a7aa3]">
-                    No head office records found.
+                    No head office rows found for the selected date range.
                   </td>
                 </tr>
               )}
@@ -199,6 +312,11 @@ const MasterView = () => {
 
       <div className="rounded-xl border border-[#d9e5f6] bg-white p-4 shadow-[0_12px_26px_rgba(17,34,64,0.08)]">
         <h2 className="text-lg font-semibold text-[#1d3f72] mb-3">Branch Records & Timestamps</h2>
+        <DateRangeFilter
+          title="Filter branch activity by date"
+          dateRange={branchDateRange}
+          setDateRange={setBranchDateRange}
+        />
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -222,7 +340,7 @@ const MasterView = () => {
               ) : (
                 <tr>
                   <td colSpan="4" className="border border-[#d2dff2] p-6 text-center text-[#5a7aa3]">
-                    No branches matched your search.
+                    No branches matched the selected search/date filters.
                   </td>
                 </tr>
               )}
@@ -233,6 +351,11 @@ const MasterView = () => {
 
       <div className="rounded-xl border border-[#d9e5f6] bg-white p-4 shadow-[0_12px_26px_rgba(17,34,64,0.08)]">
         <h2 className="text-lg font-semibold text-[#1d3f72] mb-3">Excel Sheet Insights</h2>
+        <DateRangeFilter
+          title="Filter excel uploads by date"
+          dateRange={fileDateRange}
+          setDateRange={setFileDateRange}
+        />
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -245,8 +368,8 @@ const MasterView = () => {
               </tr>
             </thead>
             <tbody>
-              {fileRows.length ? (
-                fileRows.map((file) => (
+              {filteredFileRows.length ? (
+                filteredFileRows.map((file) => (
                   <tr key={file._id} className="odd:bg-white even:bg-[#f8fbff]">
                     <td className="border border-[#d2dff2] p-2 font-semibold text-[#22466f]">{file?.file_name || "-"}</td>
                     <td className="border border-[#d2dff2] p-2 text-center">{file?.uploaded_by || "-"}</td>
@@ -258,7 +381,7 @@ const MasterView = () => {
               ) : (
                 <tr>
                   <td colSpan="5" className="border border-[#d2dff2] p-6 text-center text-[#5a7aa3]">
-                    No excel sheet information found.
+                    No excel uploads found for the selected date range.
                   </td>
                 </tr>
               )}
