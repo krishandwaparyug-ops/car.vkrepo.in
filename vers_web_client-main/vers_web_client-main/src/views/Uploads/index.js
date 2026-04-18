@@ -288,6 +288,7 @@ const Uploads = () => {
           setVerifiedValidData={setVerifiedValidData}
           setIsVerifyBtnClick={setIsVerifyClicked}
         />
+        <BranchSelect setSelectedBranch={setSelectedBranch} />
         <UploadData
           fetchHeader={fetchHeader}
           defaultFileHeader={defaultFileHeader}
@@ -300,7 +301,6 @@ const Uploads = () => {
           rawFile={rawFile}
           setUploadProgress={setUploadProgress}
         />
-        <BranchSelect setSelectedBranch={setSelectedBranch} />
         <p className="text-sm font-medium" style={{ padding: 0, margin: 0 }}>
           {desc}
         </p>
