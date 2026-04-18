@@ -284,13 +284,17 @@ th {
 .upload-sheet-panel {
   border-radius: 12px;
   background: #f7fbff;
+  min-width: 0;
+  height: calc(100vh - 210px);
 }
 
 .upload-sheet-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 12px;
-  align-items: start;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
 }
 
 .upload-match-panel {
@@ -299,8 +303,9 @@ th {
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   box-shadow: var(--shadow-soft);
   padding: 12px;
-  height: calc(100vh - 110px);
+  height: calc(100vh - 210px);
   overflow: auto;
+  min-width: 0;
 }
 
 .upload-match-head {
@@ -447,6 +452,8 @@ th {
   border-spacing: 0;
   background: #ffffff;
   font-family: "Calibri", "Segoe UI", sans-serif;
+  width: max-content;
+  min-width: 100%;
 }
 
 .upload-sheet-cell {
@@ -497,6 +504,10 @@ th {
 
   .upload-sheet-workspace {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .upload-sheet-panel {
+    height: 56vh;
   }
 
   .upload-match-panel {

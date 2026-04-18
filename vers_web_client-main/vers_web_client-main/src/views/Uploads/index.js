@@ -12,7 +12,6 @@ import { injectReducer } from "../../store";
 import OfficeReducer from "../Offices/store";
 import { CgSpinner } from "react-icons/cg";
 import { headerOptions as staticHeaderOptions } from "./constants";
-const WIDTH_SIZE = 10;
 injectReducer("office", OfficeReducer);
 
 const formatDuration = (milliseconds = 0) => {
@@ -372,14 +371,12 @@ const Uploads = () => {
         ) : null}
       </div>
 
-      <div className="upload-sheet-workspace" style={{ width: `calc(100vw - ${WIDTH_SIZE}px)` }}>
+      <div className="upload-sheet-workspace">
         <div
           className="panel upload-sheet-panel"
           ref={parentRef}
           style={{
-            height: `calc(100vh - 110px)`,
             overflow: "auto",
-            width: "100%",
           }}
         >
           {!loading ? (
@@ -390,7 +387,7 @@ const Uploads = () => {
                 position: "relative",
               }}
             >
-              <table style={{ width: "100%" }} className="border-collapse upload-sheet-table">
+              <table className="border-collapse upload-sheet-table">
                 <tbody>
                   {rowVirtualizer?.getVirtualItems()?.map((virtualItem) => {
                     return (

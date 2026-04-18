@@ -1,6 +1,52 @@
 import React from "react";
 import Papa from "papaparse";
 
+let xlsxLoaderPromise = null;
+
+const normalizeHeaderValue = (value) => {
+  return value
+    ?.toString()
+    .toLowerCase()
+    ?.replace(/[^a-zA-Z0-9\s]/g, "")
+    ?.replace(/\s+/g, " ")
+    ?.trim();
+};
+
+const getDefaultHeaderFromRows = (rows = []) => {
+  const firstRow = Array.isArray(rows?.[0]) ? rows[0] : [];
+  return firstRow.map((value) => normalizeHeaderValue(value));
+};
+
+const ensureXlsxLoaded = async () => {
+  if (typeof window.XLSX !== "undefined") {
+    return;
+  }
+
+  if (!xlsxLoaderPromise) {
+    xlsxLoaderPromise = new Promise((resolve, reject) => {
+      const existingScript = document.querySelector(
+        'script[data-xlsx-loader="true"]'
+      );
+
+      if (existingScript) {
+        existingScript.addEventListener("load", resolve, { once: true });
+        existingScript.addEventListener("error", reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src =
+        "https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js";
+      script.dataset.xlsxLoader = "true";
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  await xlsxLoaderPromise;
+};
+
 const FileReader = (props) => {
   const {
     setFileData,
@@ -24,73 +70,64 @@ const FileReader = (props) => {
 
     const fileName = file.name.toLowerCase();
 
-    // Process CSV using synchronous parsing without workers (safer for Webpack compilation targets)
+    // Fast CSV parse path on worker thread.
     if (fileName.endsWith(".csv")) {
       Papa.parse(file, {
         header: false,
-        skipEmptyLines: true,
-        dynamicTyping: true,
+        skipEmptyLines: "greedy",
+        dynamicTyping: false,
+        worker: true,
+        fastMode: true,
         complete: (results) => {
+          const rows = Array.isArray(results?.data) ? results.data : [];
           setLoading?.(false);
-          setFileData?.(results.data);
-          setDefaultFileHeader?.(
-            results.data[0]?.map((value) =>
-              value
-                ?.toString()
-                .toLowerCase()
-                ?.replace(/[^a-zA-Z0-9\s]/g, "")
-                ?.replace(/\s+/g, " ")
-                ?.trim()
-            )
-          );
+          setFileData?.(rows);
+          setDefaultFileHeader?.(getDefaultHeaderFromRows(rows));
         },
         error: (err) => {
-           setLoading?.(false);
-           console.error("CSV Parse Error", err);
-        }
+          setLoading?.(false);
+          console.error("CSV Parse Error", err);
+        },
       });
       return;
     }
 
-    // Process Excel via dynamic script injection to bypass strict browser blob-worker CSP
+    // Fast XLSX parse path: avoid conversion to CSV + second parse.
     const parseExcel = async () => {
-      if (typeof window.XLSX === "undefined") {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js";
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
       try {
+        await ensureXlsxLoaded();
         const ab = await file.arrayBuffer();
-        // Read file using sheetJS natively on main thread (fast enough for 50mb files)
-        const workbook = window.XLSX.read(ab, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const excelData = window.XLSX.utils.sheet_to_csv(worksheet);
 
-        Papa.parse(excelData, {
-          header: false,
-          skipEmptyLines: true,
-          dynamicTyping: true,
-          complete: (results) => {
-            setLoading?.(false);
-            setFileData?.(results.data);
-            setDefaultFileHeader?.(
-              results.data[0]?.map((value) =>
-                value
-                  ?.toString()
-                  .toLowerCase()
-                  ?.replace(/[^a-zA-Z0-9\s]/g, "")
-                  ?.replace(/\s+/g, " ")
-                  ?.trim()
-              )
-            );
-          },
+        // Yield once so loading UI paints immediately for large files.
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const workbook = window.XLSX.read(ab, {
+          type: "array",
+          dense: true,
+          cellText: false,
+          cellDates: false,
         });
+
+        const sheetName = workbook.SheetNames[0];
+        if (!sheetName) {
+          throw new Error("No worksheet found in file");
+        }
+
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = window.XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          raw: false,
+          blankrows: false,
+          defval: "",
+        });
+
+        const normalizedRows = Array.isArray(rows)
+          ? rows.filter((row) => Array.isArray(row) && row.length > 0)
+          : [];
+
+        setLoading?.(false);
+        setFileData?.(normalizedRows);
+        setDefaultFileHeader?.(getDefaultHeaderFromRows(normalizedRows));
       } catch (error) {
         setLoading?.(false);
         console.error("Excel Parsing Error:", error);
