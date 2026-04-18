@@ -230,7 +230,7 @@ const VerifyButton = (props) => {
 
   return (
     <button
-      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200"
+      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200 upload-verify-btn"
       onClick={handleVerify}
     >
       {loading ? (

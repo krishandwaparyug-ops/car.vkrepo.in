@@ -262,7 +262,7 @@ const Uploads = () => {
 
   return (
     <>
-      <div className="panel-header upload-sheet-toolbar p-2 min-h-12 rounded-xl flex flex-wrap gap-2 text-[#1c3a63] border border-[#d9e5f6] mb-2">
+      <div className="panel-header upload-sheet-toolbar upload-toolbar-controls p-2 min-h-12 rounded-xl flex flex-wrap gap-2 text-[#171717] border border-[#e8dcc9] mb-2">
         <FileReader
           setLoading={setLoading}
           setDefaultFileHeader={setDefaultFileHeader}
@@ -288,7 +288,6 @@ const Uploads = () => {
           setVerifiedValidData={setVerifiedValidData}
           setIsVerifyBtnClick={setIsVerifyClicked}
         />
-        <BranchSelect setSelectedBranch={setSelectedBranch} />
         <UploadData
           fetchHeader={fetchHeader}
           defaultFileHeader={defaultFileHeader}
@@ -301,52 +300,53 @@ const Uploads = () => {
           rawFile={rawFile}
           setUploadProgress={setUploadProgress}
         />
+        <BranchSelect setSelectedBranch={setSelectedBranch} />
         <p className="text-sm font-medium" style={{ padding: 0, margin: 0 }}>
           {desc}
         </p>
 
         {uploadProgress.startedAt ? (
-          <div className="ml-auto min-w-[300px] max-w-[420px] rounded-xl border border-[#d7e4f8] bg-gradient-to-br from-[#f8fbff] to-[#ffffff] p-3 shadow-[0_10px_20px_rgba(17,34,64,0.08)]">
+          <div className="ml-auto min-w-[300px] max-w-[420px] rounded-xl border border-[#e4d6c4] bg-[#fffdf7] p-3 shadow-[0_8px_18px_rgba(17,17,17,0.08)]">
             <div className="flex items-center justify-between gap-2 mb-1">
-              <p className="text-xs uppercase tracking-wide text-[#496992] font-semibold">
+              <p className="text-xs uppercase tracking-wide text-[#1f1f1f] font-semibold">
                 Upload Progress
               </p>
               <span
                 className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${
                   uploadProgress.phase === "success"
-                    ? "bg-[#dcfce8] text-[#187a3f]"
+                    ? "bg-[#f5ede2] text-[#1f1f1f]"
                     : uploadProgress.phase === "failed"
                     ? "bg-[#ffe7e7] text-[#b31b1b]"
-                    : "bg-[#e6efff] text-[#1f5cbc]"
+                    : "bg-[#f8eee4] text-[#1f1f1f]"
                 }`}
               >
                 {uploadProgress.phase}
               </span>
             </div>
 
-            <div className="h-2 w-full rounded-full bg-[#e7eefb] overflow-hidden mb-2">
+            <div className="h-2 w-full rounded-full bg-[#efe3d0] overflow-hidden mb-2">
               <div
                 className={`h-full rounded-full transition-all duration-300 ${
                   uploadProgress.phase === "failed"
                     ? "bg-[#ef4444]"
-                    : "bg-gradient-to-r from-[#2f80ff] via-[#1f6feb] to-[#1760d1]"
+                    : "bg-gradient-to-r from-[#111111] to-[#b91c1c]"
                 }`}
                 style={{ width: `${Math.min(100, Math.max(0, uploadProgress.percent || 0))}%` }}
               ></div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#355a86] mb-1">
+            <div className="flex items-center justify-between text-xs text-[#1f1f1f] mb-1">
               <p>{Math.min(100, Math.max(0, uploadProgress.percent || 0))}% complete</p>
               <p>Elapsed: {formatDuration(elapsedMs)}</p>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-[#355a86] mb-1">
+            <div className="flex items-center justify-between text-xs text-[#1f1f1f] mb-1">
               <p>
                 Rows: {uploadProgress.uploadedRows || 0}/{uploadProgress.totalRows || 0}
               </p>
               {uploadProgress.finishedAt ? (
                 <button
-                  className="text-[#1f6feb] font-semibold hover:underline"
+                  className="text-[#b31b1b] font-semibold hover:underline"
                   onClick={() =>
                     setUploadProgress({
                       phase: "idle",
@@ -364,7 +364,7 @@ const Uploads = () => {
               ) : null}
             </div>
 
-            <p className="text-xs text-[#4a6b95] truncate">
+            <p className="text-xs text-[#272727] truncate">
               {uploadProgress.message || "Waiting for upload"}
             </p>
           </div>

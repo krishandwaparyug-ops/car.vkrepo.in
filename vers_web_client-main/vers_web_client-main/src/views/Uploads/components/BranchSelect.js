@@ -30,19 +30,21 @@ const BranchSelect = (props) => {
   }, [branch]);
 
   return (
-    <div style={{ width: "500px" }} className="h-full">
+    <div className="h-full upload-toolbar-branch">
       {data.length > 0 && (
         <Select
-          className="text-sm pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm"
+          className="text-sm pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm upload-branch-select"
           options={data}
           onChange={(values) => setSelectedBranch?.(values?.[0]?.value || null)}
           placeholder="Search & select branch"
           style={{
-            minHeight: "32px",
+            minHeight: "40px",
             width: "100%",
-            fontSize: '16.5px',
+            fontSize: "15px",
             outline: "none",
-            border: "none",
+            border: "1px solid #2c2420",
+            background: "#fffdf8",
+            color: "#111111",
           }}
         />
       )}

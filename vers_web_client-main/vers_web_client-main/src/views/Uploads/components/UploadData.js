@@ -631,9 +631,9 @@ const UploadData = (props) => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 upload-toolbar-upload">
       <button
-      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200 disabled:opacity-60"
+      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200 disabled:opacity-60 upload-cta-btn"
       onClick={onUploadToServer}
       disabled={isUploadDisabled}
       title={
@@ -652,12 +652,12 @@ const UploadData = (props) => {
       Upload
       </button>
       {unmatchedHeaderColumns.length > 0 && !loading ? (
-        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate" title={unmatchedHeaderColumns.join(", ")}>
+        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate upload-toolbar-action-text" title={unmatchedHeaderColumns.join(", ")}>
           Match all columns to enable upload ({unmatchedHeaderColumns.length} unmatched)
         </p>
       ) : null}
       {duplicateMappedKeys.length > 0 && !loading ? (
-        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate" title={duplicateMappedKeys.join(", ")}>
+        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate upload-toolbar-action-text" title={duplicateMappedKeys.join(", ")}>
           Remove duplicate mapped fields before upload
         </p>
       ) : null}
