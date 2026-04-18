@@ -286,6 +286,161 @@ th {
   background: #f7fbff;
 }
 
+.upload-sheet-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+  align-items: start;
+}
+
+.upload-match-panel {
+  border: 1px solid #d7e3f7;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: var(--shadow-soft);
+  padding: 12px;
+  height: calc(100vh - 110px);
+  overflow: auto;
+}
+
+.upload-match-head {
+  margin-bottom: 10px;
+}
+
+.upload-match-title {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #173a68;
+  font-weight: 800;
+}
+
+.upload-match-subtitle {
+  margin: 4px 0 0;
+  color: #4c6487;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.upload-match-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.upload-match-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.upload-match-pill-info {
+  background: #e8f0ff;
+  color: #1e56ad;
+  border-color: #bdd1f8;
+}
+
+.upload-match-pill-ok {
+  background: #dcfce8;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.upload-match-pill-warn {
+  background: #ffe7e7;
+  color: #b42318;
+  border-color: #fecaca;
+}
+
+.upload-match-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.upload-match-item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  border-radius: 8px;
+  padding: 7px 8px;
+}
+
+.upload-match-item-unmatched {
+  border: 1px solid #fecaca;
+  background: #fff1f1;
+}
+
+.upload-match-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffe0e0;
+  color: #b42318;
+  font-weight: 800;
+  font-size: 0.72rem;
+}
+
+.upload-match-name {
+  color: #8b1c1c;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.upload-match-success {
+  margin: 0;
+  border: 1px solid #86efac;
+  background: #f0fdf4;
+  color: #166534;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.upload-duplicate-box {
+  margin-top: 10px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.upload-duplicate-title {
+  margin: 0 0 6px;
+  color: #92400e;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.upload-duplicate-list {
+  margin: 0;
+  padding-left: 16px;
+  color: #92400e;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.upload-match-empty {
+  margin: 0;
+  color: #526887;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .upload-sheet-table {
   table-layout: fixed;
   border-collapse: separate;
@@ -338,5 +493,14 @@ th {
 @media (max-width: 1024px) {
   .page-content {
     padding: 0.55rem;
+  }
+
+  .upload-sheet-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .upload-match-panel {
+    height: auto;
+    max-height: 260px;
   }
 }

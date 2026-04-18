@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import FileReader from "./components/FileReader";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import ExcelHeader from "./components/ExcelHeader";
@@ -30,6 +30,36 @@ const formatDuration = (milliseconds = 0) => {
   return `${mins.toString().padStart(2, "0")}:${secs
     .toString()
     .padStart(2, "0")}`;
+};
+
+const normalizeHeaderMatchToken = (value = "") => {
+  return value?.toString()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
+};
+
+const resolveHeaderOptionKey = (value, options = []) => {
+  const normalizedValue = normalizeHeaderMatchToken(value);
+
+  if (!normalizedValue || !Array.isArray(options)) {
+    return "";
+  }
+
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i] || {};
+    const key = Object.keys(option)?.[0];
+    const aliases = Array.isArray(Object.values(option)?.[0])
+      ? Object.values(option)?.[0]
+      : [];
+
+    const candidates = [key, ...aliases]
+      .map((candidate) => normalizeHeaderMatchToken(candidate))
+      .filter(Boolean);
+
+    if (candidates.includes(normalizedValue)) {
+      return key || "";
+    }
+  }
+
+  return "";
 };
 
 const Uploads = () => {
@@ -76,6 +106,55 @@ const Uploads = () => {
   const elapsedMs = uploadProgress.startedAt
     ? (uploadProgress.finishedAt || clockTick) - uploadProgress.startedAt
     : 0;
+
+  const headerMatchSummary = useMemo(() => {
+    const headerRow = Array.isArray(fileData?.[0]) ? fileData[0] : [];
+
+    if (!Array.isArray(defaultFileHeader) || defaultFileHeader.length < 1) {
+      return {
+        totalColumns: 0,
+        matchedColumns: 0,
+        unmatchedColumns: [],
+        duplicateMappedKeys: [],
+        readyToUpload: false,
+      };
+    }
+
+    const resolvedColumns = defaultFileHeader.map((sourceHeader, index) => {
+      const selectedHeader = headerRow?.[index];
+      const mappedKey =
+        resolveHeaderOptionKey(selectedHeader, headerOptions) ||
+        resolveHeaderOptionKey(sourceHeader, headerOptions);
+
+      return {
+        index,
+        sourceHeader:
+          sourceHeader?.toString()?.trim() || `Column ${index + 1}`,
+        mappedKey,
+      };
+    });
+
+    const unmatchedColumns = resolvedColumns.filter((column) => !column.mappedKey);
+
+    const duplicateMappedKeys = Array.from(
+      resolvedColumns.reduce((acc, column) => {
+        if (!column.mappedKey) return acc;
+        acc.set(column.mappedKey, (acc.get(column.mappedKey) || 0) + 1);
+        return acc;
+      }, new Map())
+    )
+      .filter(([, count]) => count > 1)
+      .map(([key]) => key);
+
+    return {
+      totalColumns: resolvedColumns.length,
+      matchedColumns: resolvedColumns.length - unmatchedColumns.length,
+      unmatchedColumns,
+      duplicateMappedKeys,
+      readyToUpload:
+        unmatchedColumns.length === 0 && duplicateMappedKeys.length === 0,
+    };
+  }, [defaultFileHeader, fileData, headerOptions]);
 
   const onDataChange = (props) => {
     const { rowIndex, colIndex, updatedValue } = props;
@@ -125,15 +204,20 @@ const Uploads = () => {
           return [value.toString()];
         };
 
-        const serverOptions = Object.keys(serverHeaderConfig)
-          .map((element) => {
-            if (!["__v", "updatedAt", "createdAt", "_id"].includes(element))
-              return {
-                [element.toString()?.split("_").join(" ")]:
-                  toAliases(serverHeaderConfig[element]),
-              };
-          })
-          .filter(Boolean);
+        const serverOptions = Object.keys(serverHeaderConfig).reduce(
+          (acc, element) => {
+            if (["__v", "updatedAt", "createdAt", "_id"].includes(element)) {
+              return acc;
+            }
+
+            acc.push({
+              [element.toString()?.split("_").join(" ")]:
+                toAliases(serverHeaderConfig[element]),
+            });
+            return acc;
+          },
+          []
+        );
 
         // Merge by key and union aliases so static fallback aliases stay available.
         const staticMap = new Map(
@@ -288,94 +372,157 @@ const Uploads = () => {
         ) : null}
       </div>
 
-      <div
-        className="panel upload-sheet-panel"
-        ref={parentRef}
-        style={{
-          height: `calc(100vh - 110px)`,
-          overflow: "auto",
-          width: `calc(100vw - ${WIDTH_SIZE}px)`,
-        }}
-      >
-        {!loading ? (
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: "100%",
-              position: "relative",
-            }}
-          >
-            <table style={{ width: "100%" }} className="border-collapse upload-sheet-table">
-              <tbody>
-                {rowVirtualizer?.getVirtualItems()?.map((virtualItem) => {
-                  return (
-                    <tr
-                      key={virtualItem.key}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        padding: 0,
-                        width: "100%",
-                        height: `${virtualItem.size - 2}px`,
-                        transform: `translateY(${virtualItem.start}px)`,
-                        zIndex: virtualItem?.index === 0 ? 1 : 0,
-                      }}
+      <div className="upload-sheet-workspace" style={{ width: `calc(100vw - ${WIDTH_SIZE}px)` }}>
+        <div
+          className="panel upload-sheet-panel"
+          ref={parentRef}
+          style={{
+            height: `calc(100vh - 110px)`,
+            overflow: "auto",
+            width: "100%",
+          }}
+        >
+          {!loading ? (
+            <div
+              style={{
+                height: `${rowVirtualizer.getTotalSize()}px`,
+                width: "100%",
+                position: "relative",
+              }}
+            >
+              <table style={{ width: "100%" }} className="border-collapse upload-sheet-table">
+                <tbody>
+                  {rowVirtualizer?.getVirtualItems()?.map((virtualItem) => {
+                    return (
+                      <tr
+                        key={virtualItem.key}
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          padding: 0,
+                          width: "100%",
+                          height: `${virtualItem.size - 2}px`,
+                          transform: `translateY(${virtualItem.start}px)`,
+                          zIndex: virtualItem?.index === 0 ? 1 : 0,
+                        }}
+                      >
+                        {fileData?.[virtualItem?.index]?.map((value, index) => {
+                          return virtualItem.index === 0 ? (
+                            <td
+                              className="upload-sheet-cell upload-sheet-cell-header"
+                              style={{ maxWidth: "200px", minWidth: "200px" }}
+                              key={index}
+                            >
+                              <ExcelHeader
+                                headerOptions={headerOptions}
+                                onDeleteData={onDeleteData}
+                                defaultFileHeader={defaultFileHeader}
+                                verifiedValidData={verifiedValidData}
+                                isVerifyClicked={isVerifyClicked}
+                                header={fileData[0]?.map((value) =>
+                                  value?.toString()?.toLowerCase()
+                                )}
+                                onDataChange={onDataChange}
+                                value={value}
+                                rowIndex={virtualItem.index}
+                                colIndex={index}
+                              />
+                            </td>
+                          ) : (
+                            <td
+                              className="text-sm upload-sheet-cell"
+                              style={{ maxWidth: "200px", minWidth: "200px" }}
+                              key={index}
+                            >
+                              <ExcelRow
+                                onDeleteData={onDeleteData}
+                                onDataChange={onDataChange}
+                                value={value}
+                                rowIndex={virtualItem.index}
+                                colIndex={index}
+                                type="text"
+                              />
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="h-full w-full justify-center items-center flex flex-col text-[#1f3d66]">
+              <CgSpinner
+                className={`h-10 w-10 text-[#1f6feb] ${loading ? "animate-spin" : ""
+                  }`}
+              />
+              <p>Reading file... Please wait...</p>
+            </div>
+          )}
+        </div>
+
+        <aside className="upload-match-panel">
+          <div className="upload-match-head">
+            <h4 className="upload-match-title">Column Match Panel</h4>
+            <p className="upload-match-subtitle">
+              Red headers listed here must be mapped before upload.
+            </p>
+          </div>
+
+          {headerMatchSummary.totalColumns > 0 ? (
+            <>
+              <div className="upload-match-stats">
+                <span className="upload-match-pill upload-match-pill-info">
+                  {headerMatchSummary.matchedColumns}/{headerMatchSummary.totalColumns} matched
+                </span>
+                <span
+                  className={`upload-match-pill ${
+                    headerMatchSummary.readyToUpload
+                      ? "upload-match-pill-ok"
+                      : "upload-match-pill-warn"
+                  }`}
+                >
+                  {headerMatchSummary.readyToUpload
+                    ? "Ready to Upload"
+                    : "Action Required"}
+                </span>
+              </div>
+
+              {headerMatchSummary.unmatchedColumns.length > 0 ? (
+                <ul className="upload-match-list">
+                  {headerMatchSummary.unmatchedColumns.map((column) => (
+                    <li
+                      key={column.index}
+                      className="upload-match-item upload-match-item-unmatched"
                     >
-                      {fileData?.[virtualItem?.index]?.map((value, index) => {
-                        return virtualItem.index === 0 ? (
-                          <td
-                            className="upload-sheet-cell upload-sheet-cell-header"
-                            style={{ maxWidth: "200px", minWidth: "200px" }}
-                            key={index}
-                          >
-                            <ExcelHeader
-                              headerOptions={headerOptions}
-                              onDeleteData={onDeleteData}
-                              defaultFileHeader={defaultFileHeader}
-                              verifiedValidData={verifiedValidData}
-                              isVerifyClicked={isVerifyClicked}
-                              header={fileData[0]?.map((value) =>
-                                value?.toString()?.toLowerCase()
-                              )}
-                              onDataChange={onDataChange}
-                              value={value}
-                              rowIndex={virtualItem.index}
-                              colIndex={index}
-                            />
-                          </td>
-                        ) : (
-                          <td
-                            className="text-sm upload-sheet-cell"
-                            style={{ maxWidth: "200px", minWidth: "200px" }}
-                            key={index}
-                          >
-                            <ExcelRow
-                              onDeleteData={onDeleteData}
-                              onDataChange={onDataChange}
-                              value={value}
-                              rowIndex={virtualItem.index}
-                              colIndex={index}
-                              type="text"
-                            />
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="h-full w-full justify-center items-center flex flex-col text-[#1f3d66]">
-            <CgSpinner
-              className={`h-10 w-10 text-[#1f6feb] ${loading ? "animate-spin" : ""
-                }`}
-            />
-            <p>Reading file... Please wait...</p>
-          </div>
-        )}
+                      <span className="upload-match-index">{column.index + 1}</span>
+                      <span className="upload-match-name">{column.sourceHeader}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="upload-match-success">
+                  All columns are matched. You can verify and upload now.
+                </p>
+              )}
+
+              {headerMatchSummary.duplicateMappedKeys.length > 0 ? (
+                <div className="upload-duplicate-box">
+                  <p className="upload-duplicate-title">Duplicate mapped fields</p>
+                  <ul className="upload-duplicate-list">
+                    {headerMatchSummary.duplicateMappedKeys.map((key) => (
+                      <li key={key}>{key.toUpperCase()}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
+          ) : (
+            <p className="upload-match-empty">Upload a file to see red unmatched headers here.</p>
+          )}
+        </aside>
       </div>
     </>
   );
