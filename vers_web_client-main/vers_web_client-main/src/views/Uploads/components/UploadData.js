@@ -24,6 +24,12 @@ const normalizeTextKey = (value = "") => {
   return value?.toString()?.trim()?.toLowerCase()?.replace(/[^a-z0-9]/g, "");
 };
 
+const formatColumnLabel = (value = "", index = 0) => {
+  const text = value?.toString()?.trim();
+  if (text) return text;
+  return `Column ${index + 1}`;
+};
+
 const tokenizeText = (value = "") => {
   return value
     ?.toString()
@@ -220,6 +226,30 @@ const UploadData = (props) => {
 
   const [loading, setLoading] = useState(false);
 
+  const safeHeaderForValidation = Array.isArray(header) ? header : [];
+  const resolvedHeaderPreview = safeHeaderForValidation.map((columnName, index) =>
+    resolveServerHeaderKey(columnName, defaultFileHeader?.[index])
+  );
+  const unmatchedHeaderColumns = resolvedHeaderPreview
+    .map((mappedKey, index) => {
+      if (mappedKey) return null;
+      return formatColumnLabel(defaultFileHeader?.[index] || safeHeaderForValidation[index], index);
+    })
+    .filter(Boolean);
+
+  const mappedKeys = resolvedHeaderPreview.filter(Boolean);
+  const duplicateMappedKeys = Array.from(
+    mappedKeys.reduce((acc, key) => {
+      acc.set(key, (acc.get(key) || 0) + 1);
+      return acc;
+    }, new Map())
+  )
+    .filter(([, count]) => count > 1)
+    .map(([key]) => key);
+
+  const isUploadDisabled =
+    loading || unmatchedHeaderColumns.length > 0 || duplicateMappedKeys.length > 0;
+
   const publishProgress = (payload = {}) => {
     if (typeof setUploadProgress === "function") {
       setUploadProgress((prev) => ({ ...prev, ...payload }));
@@ -274,18 +304,74 @@ const UploadData = (props) => {
       resolveServerHeaderKey(columnName, defaultFileHeader?.[index])
     );
 
+    const unmatchedColumns = resolvedColumnKeys
+      .map((mappedKey, index) => {
+        if (mappedKey) return null;
+        return formatColumnLabel(defaultFileHeader?.[index] || safeHeader[index], index);
+      })
+      .filter(Boolean);
+
+    if (unmatchedColumns.length > 0) {
+      const unmatchedPreview = unmatchedColumns.slice(0, 6).join(", ");
+      const extra = unmatchedColumns.length > 6 ? ` and ${unmatchedColumns.length - 6} more` : "";
+      const errorMessage = `Match all columns before upload. Unmatched: ${unmatchedPreview}${extra}`;
+      console.error("[Upload] Unmatched columns", unmatchedColumns);
+      notify(errorMessage);
+      publishProgress({
+        phase: "failed",
+        finishedAt: Date.now(),
+        message: errorMessage,
+      });
+      setDesc?.("");
+      setLoading(false);
+      return;
+    }
+
+    const duplicateKeys = Array.from(
+      resolvedColumnKeys.reduce((acc, key) => {
+        acc.set(key, (acc.get(key) || 0) + 1);
+        return acc;
+      }, new Map())
+    )
+      .filter(([, count]) => count > 1)
+      .map(([key]) => key)
+      .filter(Boolean);
+
+    if (duplicateKeys.length > 0) {
+      const duplicateMessage = `Duplicate mapped fields found: ${duplicateKeys.join(", ")}. Remove or remap duplicate columns.`;
+      console.error("[Upload] Duplicate mapped fields", duplicateKeys);
+      notify(duplicateMessage);
+      publishProgress({
+        phase: "failed",
+        finishedAt: Date.now(),
+        message: duplicateMessage,
+      });
+      setDesc?.("");
+      setLoading(false);
+      return;
+    }
+
     for (let i = 0; i < safeHeader.length; i++) {
       const headerKey = resolvedColumnKeys[i];
       if (headerKey) {
-        const valueKey = defaultFileHeader[i]
-          ?.toString()
-          ?.replace(/[^a-zA-Z0-9]/g, "")
-          .toLowerCase()
-          .trim();
-        newUpdateHeaderToServer[headerKey] = valueKey;
+        const valueKey = normalizeTextKey(defaultFileHeader?.[i] || safeHeader?.[i]);
+        if (!valueKey) continue;
+
+        if (!Array.isArray(newUpdateHeaderToServer[headerKey])) {
+          newUpdateHeaderToServer[headerKey] = [];
+        }
+
+        newUpdateHeaderToServer[headerKey].push(valueKey);
       }
     }
-    await updateHeader(newUpdateHeaderToServer);
+
+    Object.keys(newUpdateHeaderToServer).forEach((key) => {
+      newUpdateHeaderToServer[key] = Array.from(new Set(newUpdateHeaderToServer[key]));
+    });
+
+    if (Object.keys(newUpdateHeaderToServer).length > 0) {
+      await updateHeader(newUpdateHeaderToServer);
+    }
 
     setDesc?.("Uploading Data... Starting...");
     try {
@@ -545,9 +631,18 @@ const UploadData = (props) => {
   };
 
   return (
-    <button
-      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200"
+    <div className="flex items-center gap-2">
+      <button
+      className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200 disabled:opacity-60"
       onClick={onUploadToServer}
+      disabled={isUploadDisabled}
+      title={
+        unmatchedHeaderColumns.length > 0
+          ? `Match all columns before upload. Unmatched: ${unmatchedHeaderColumns.slice(0, 5).join(", ")}`
+          : duplicateMappedKeys.length > 0
+          ? `Duplicate mapped fields: ${duplicateMappedKeys.join(", ")}`
+          : "Upload verified data"
+      }
     >
         {loading ? (
         <CgSpinner
@@ -555,7 +650,18 @@ const UploadData = (props) => {
         />
       ) : null}
       Upload
-    </button>
+      </button>
+      {unmatchedHeaderColumns.length > 0 && !loading ? (
+        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate" title={unmatchedHeaderColumns.join(", ")}>
+          Match all columns to enable upload ({unmatchedHeaderColumns.length} unmatched)
+        </p>
+      ) : null}
+      {duplicateMappedKeys.length > 0 && !loading ? (
+        <p className="text-xs text-[#b42318] font-semibold max-w-[320px] truncate" title={duplicateMappedKeys.join(", ")}>
+          Remove duplicate mapped fields before upload
+        </p>
+      ) : null}
+    </div>
   );
 };
 

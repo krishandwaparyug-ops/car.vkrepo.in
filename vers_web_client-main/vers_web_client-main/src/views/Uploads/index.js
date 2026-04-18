@@ -179,7 +179,7 @@ const Uploads = () => {
 
   return (
     <>
-      <div className="panel-header p-2 min-h-12 rounded-xl flex flex-wrap gap-2 text-[#1c3a63] border border-[#d9e5f6] mb-2">
+      <div className="panel-header upload-sheet-toolbar p-2 min-h-12 rounded-xl flex flex-wrap gap-2 text-[#1c3a63] border border-[#d9e5f6] mb-2">
         <FileReader
           setLoading={setLoading}
           setDefaultFileHeader={setDefaultFileHeader}
@@ -289,7 +289,7 @@ const Uploads = () => {
       </div>
 
       <div
-        className="panel"
+        className="panel upload-sheet-panel"
         ref={parentRef}
         style={{
           height: `calc(100vh - 110px)`,
@@ -305,7 +305,7 @@ const Uploads = () => {
               position: "relative",
             }}
           >
-            <table style={{ width: "100%" }} className="border-collapse">
+            <table style={{ width: "100%" }} className="border-collapse upload-sheet-table">
               <tbody>
                 {rowVirtualizer?.getVirtualItems()?.map((virtualItem) => {
                   return (
@@ -325,7 +325,7 @@ const Uploads = () => {
                       {fileData?.[virtualItem?.index]?.map((value, index) => {
                         return virtualItem.index === 0 ? (
                           <td
-                            className=" border border-green-400"
+                            className="upload-sheet-cell upload-sheet-cell-header"
                             style={{ maxWidth: "200px", minWidth: "200px" }}
                             key={index}
                           >
@@ -346,7 +346,7 @@ const Uploads = () => {
                           </td>
                         ) : (
                           <td
-                            className="text-sm border border-gray-400"
+                            className="text-sm upload-sheet-cell"
                             style={{ maxWidth: "200px", minWidth: "200px" }}
                             key={index}
                           >

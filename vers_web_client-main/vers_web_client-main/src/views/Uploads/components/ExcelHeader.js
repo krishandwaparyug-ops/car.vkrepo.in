@@ -17,19 +17,47 @@ const OnlyNumAndCharAndTrim = (value) => {
     ?.trim();
 };
 
+const normalizeHeaderToken = (value = "") => {
+  return OnlyNumAndCharAndTrim(value)
+    ?.toString()
+    ?.toLowerCase()
+    ?.split(" ")
+    ?.join("");
+};
+
 const checkValidHeaderValue = (value, headerOptions = []) => {
   let headerStatus = { key: value, status: false };
+  const normalizedValue = normalizeHeaderToken(value);
+
+  if (!normalizedValue) {
+    return { key: "", status: false };
+  }
+
   for (let i = 0; i < headerOptions.length; i++) {
-    if (
-      Object.values(headerOptions[i])[0]?.includes(
-        OnlyNumAndCharAndTrim(value)?.toLowerCase()?.split(" ").join("")
-      )
-    ) {
-      headerStatus = { key: Object.keys(headerOptions[i])[0], status: true };
+    const optionKey = Object.keys(headerOptions[i])[0];
+    const aliases = Array.isArray(Object.values(headerOptions[i])[0])
+      ? Object.values(headerOptions[i])[0]
+      : [];
+
+    const candidates = [
+      ...aliases,
+      optionKey,
+      getDisplayName(optionKey),
+    ]
+      .map((candidate) => normalizeHeaderToken(candidate))
+      .filter(Boolean);
+
+    if (candidates.includes(normalizedValue)) {
+      headerStatus = { key: optionKey, status: true };
       break;
     }
   }
   return headerStatus;
+};
+
+const resolveHeaderKeyFromValue = (value, headerOptions = []) => {
+  const headerStatus = checkValidHeaderValue(value, headerOptions);
+  return headerStatus.status ? headerStatus.key : "";
 };
 
 const normalizeSearchToken = (value = "") => {
@@ -217,18 +245,24 @@ const ExcelHeader = (props) => {
     header = [],
     headerOptions = [],
     defaultFileHeader = [],
-    verifiedValidData = [],
-    isVerifyClicked = false,
   } = props;
 
-  const [updatedValue, setUpdatedValue] = useState("");
+  const [updatedValue, setUpdatedValue] = useState(() =>
+    resolveHeaderKeyFromValue(value, headerOptions)
+  );
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
 
+  useEffect(() => {
+    const resolvedValue = resolveHeaderKeyFromValue(value, headerOptions);
+    setUpdatedValue((prev) => (prev === resolvedValue ? prev : resolvedValue));
+  }, [value, headerOptions]);
+
   const selectedLabel = updatedValue ? getDisplayName(updatedValue) : "";
 
-  const isValid = checkValidHeaderValue(updatedValue, headerOptions).status;
+  const isValid =
+    Boolean(updatedValue) && checkValidHeaderValue(updatedValue, headerOptions).status;
   const isDisabled = false;
 
   const options = [
@@ -246,7 +280,7 @@ const ExcelHeader = (props) => {
 
   useEffect(() => {
     onDataChange?.({ rowIndex, colIndex, updatedValue });
-  }, [updatedValue]);
+  }, [updatedValue, rowIndex, colIndex, onDataChange]);
 
   const handleSelect = (key) => {
     setUpdatedValue(key);
@@ -262,20 +296,25 @@ const ExcelHeader = (props) => {
           onClick={() => { if (!isDisabled) { setSearchText(""); setDialogOpen(true); } }}
           style={{
             ...style,
-            background: isValid ? "yellow" : (isVerifyClicked && !updatedValue) ? "#ffe0e0" : "#f5f5f5",
-            border: (isVerifyClicked && !updatedValue) ? "1.5px solid #e53e3e" : "1px solid #ccc",
+            background: isValid ? "#ffe86b" : "#ffd9d9",
+            border: isValid ? "1px solid #d7b90f" : "1.5px solid #e53e3e",
             cursor: isDisabled ? "default" : "pointer",
             textAlign: "left",
-            fontSize: 13,
-            padding: "0 6px",
+            fontSize: 12,
+            padding: "0 8px",
             overflow: "hidden",
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
+            fontFamily: '"Calibri", "Segoe UI", sans-serif',
           }}
-          title={selectedLabel || defaultFileHeader?.[colIndex]?.toString().toUpperCase() || "Click to select"}
+          title={
+            selectedLabel ||
+            defaultFileHeader?.[colIndex]?.toString().toUpperCase() ||
+            "Click to select"
+          }
         >
           {selectedLabel || (
-            <span style={{ color: "#aaa" }}>
+            <span style={{ color: "#b91c1c", fontWeight: 700 }}>
               {defaultFileHeader?.[colIndex]?.toString().toUpperCase() || "Select..."}
             </span>
           )}

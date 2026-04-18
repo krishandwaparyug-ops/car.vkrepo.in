@@ -13,8 +13,12 @@ const ExcelRow = (props) => {
   });
 
   useEffect(() => {
+    if (value === null || value === undefined) {
+      setUpdatedValue("");
+      return;
+    }
     setUpdatedValue(value);
-  }, [props]);
+  }, [value]);
 
   const handleChangeValue = (event) => {
     const updatedValue = event.target.value;
@@ -51,9 +55,8 @@ const ExcelRow = (props) => {
       <input
         autoComplete="off"
         type={type}
-        checked
         value={updatedValue?.toString()?.toUpperCase()}
-        className="text-sm h-full p-1 outline-green-600 bg-emerald-50"
+        className="text-sm h-full p-1 outline-green-600 upload-sheet-input"
         onBlur={handleOnBlur}
         onChange={handleChangeValue}
       ></input>

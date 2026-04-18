@@ -133,6 +133,46 @@ const fileHeaderSchema = new Schema(
       lowercase: true,
       trim: true,
     },
+    customer_contact_nos: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    customer_address: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    seasoning: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    sender_mail_id_1: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    sender_mail_id_2: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    toss: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    remark: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
+    is_released: {
+      type: [String],
+      lowercase: true,
+      trim: true,
+    },
   },
   {
     timestamps: true,

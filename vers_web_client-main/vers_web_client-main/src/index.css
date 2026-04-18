@@ -269,6 +269,59 @@ th {
   text-decoration: none;
 }
 
+.upload-sheet-toolbar {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 255, 0.96)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(18, 54, 104, 0.03) 0,
+      rgba(18, 54, 104, 0.03) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+}
+
+.upload-sheet-panel {
+  border-radius: 12px;
+  background: #f7fbff;
+}
+
+.upload-sheet-table {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  font-family: "Calibri", "Segoe UI", sans-serif;
+}
+
+.upload-sheet-cell {
+  border: 1px solid #cfd8e8 !important;
+  background: #ffffff;
+  padding: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.upload-sheet-cell-header {
+  background: linear-gradient(180deg, #eef5ff 0%, #dbe8fb 100%);
+}
+
+.upload-sheet-input {
+  width: 100%;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: #ffffff !important;
+  color: #1d2a3f;
+  font-family: "Calibri", "Segoe UI", sans-serif;
+  font-size: 12px;
+}
+
+.upload-sheet-input:focus {
+  border: none !important;
+  background: #eef6ff !important;
+  box-shadow: inset 0 0 0 1px #4c8bf5 !important;
+}
+
 @keyframes vkDotWave {
   0%,
   80%,
