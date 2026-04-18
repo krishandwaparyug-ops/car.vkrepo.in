@@ -186,16 +186,24 @@ const newBulkVehicleRegistration = async (req, res, next) => {
 
 const registerVehicleChunk = async (req, res, next) => {
   try {
-    const { branchId, data, isFirstChunk } = req.body;
+    const { branchId, data, isFirstChunk, isLastChunk, totalRows } = req.body;
     if (!branchId || !checkObjectId(branchId)) return next(responseError(400, "Invalid branch Id"));
     if (!Array.isArray(data)) return next(responseError(400, "Invalid data chunk"));
 
     const branchIdObj = new mongoose.Types.ObjectId(branchId);
+    const hasFinalChunkSignal = typeof isLastChunk === "boolean";
+    const parsedTotalRows = Number(totalRows);
+    const normalizedTotalRows = Number.isFinite(parsedTotalRows) && parsedTotalRows >= 0
+      ? Math.trunc(parsedTotalRows)
+      : null;
     
     // [OPTIMIZATION] FIRST CHUNK: Clear the branch data instantly
     if (isFirstChunk) {
        console.log(`[Reg-Fast] Clearing branch ${branchId} for new upload...`);
        await Vehicle.deleteMany({ branch_id: branchIdObj });
+       if (hasFinalChunkSignal) {
+         await Branch.findByIdAndUpdate(branchId, { records: 0 });
+       }
     }
 
     // [OPTIMIZATION] Direct Collection Insertion (bypassing Mongoose complexity)
@@ -206,8 +214,19 @@ const registerVehicleChunk = async (req, res, next) => {
          branch_id: doc.branch_id ? new mongoose.Types.ObjectId(doc.branch_id) : branchIdObj,
        }));
        await Vehicle.collection.insertMany(docsToInsert, { ordered: false });
-       // Increment record counts incrementally
-       await Branch.findByIdAndUpdate(branchId, { $inc: { records: data.length } });
+       // Legacy clients do not send isLastChunk, so keep incremental count for them.
+       if (!hasFinalChunkSignal) {
+         await Branch.findByIdAndUpdate(branchId, { $inc: { records: data.length } });
+       }
+    }
+
+    if (hasFinalChunkSignal && isLastChunk) {
+      if (normalizedTotalRows !== null) {
+        await Branch.findByIdAndUpdate(branchId, { records: normalizedTotalRows });
+      } else {
+        const branchCount = await Vehicle.countDocuments({ branch_id: branchIdObj });
+        await Branch.findByIdAndUpdate(branchId, { records: branchCount });
+      }
     }
 
     return res.status(200).json({ success: true, count: data.length });

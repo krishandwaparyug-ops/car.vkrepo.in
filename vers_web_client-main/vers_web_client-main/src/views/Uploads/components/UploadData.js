@@ -7,8 +7,9 @@ import { CgSpinner } from "react-icons/cg";
 
 const notify = (message, type = "error") => toast[type](message);
 
-const CHUNK_SIZE = 5000;
-const CHUNK_CONCURRENCY = 8;
+const CHUNK_SIZE = 8000;
+const FIRST_CHUNK_CONCURRENCY = 4;
+const GLOBAL_CHUNK_CONCURRENCY = 12;
 
 const sanitizeHeaderKey = (value = "") => {
   return value
@@ -157,6 +158,25 @@ const chunkArray = (input = [], size = CHUNK_SIZE) => {
   return chunks;
 };
 
+const runWithConcurrency = async (items = [], limit = 1, worker = async () => {}) => {
+  if (!Array.isArray(items) || items.length < 1) {
+    return;
+  }
+
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 1, items.length));
+  let nextIndex = 0;
+
+  const runners = Array.from({ length: safeLimit }).map(async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      await worker(items[currentIndex], currentIndex);
+    }
+  });
+
+  await Promise.all(runners);
+};
+
 const getRowValue = (row, headerValue, index) => {
   if (row && Object.prototype.hasOwnProperty.call(row, headerValue)) {
     return row[headerValue];
@@ -164,11 +184,15 @@ const getRowValue = (row, headerValue, index) => {
   return row?.[index];
 };
 
-const postChunk = (branchId, data, isFirstChunk) => {
+const postChunk = (branchId, data, options = {}) => {
+  const { isFirstChunk = false, isLastChunk = false, totalRows = 0 } = options;
+
   return BaseService.post(`v1/vehicle/admin/insert/chunk`, {
     branchId,
     data,
     isFirstChunk,
+    isLastChunk,
+    totalRows,
   });
 };
 
@@ -381,6 +405,7 @@ const UploadData = (props) => {
       const chunkPlan = groupsToUpload.map((group) => {
         return {
           branchId: group.branchId,
+          totalRows: group.rows.length,
           chunks: chunkArray(group.rows),
         };
       });
@@ -396,8 +421,7 @@ const UploadData = (props) => {
       let completedChunks = 0;
       let uploadedRowsCount = 0;
 
-      const updateProgress = (nextCompletedChunks) => {
-        completedChunks = nextCompletedChunks;
+      const updateProgress = () => {
         const progress = Math.round((completedChunks / totalChunks) * 100);
         setDesc?.(`Uploading Data... (${progress}%)`);
         publishProgress({
@@ -409,6 +433,12 @@ const UploadData = (props) => {
         });
       };
 
+      const markChunkAsUploaded = (rowsInChunk = 0) => {
+        uploadedRowsCount += rowsInChunk;
+        completedChunks += 1;
+        updateProgress();
+      };
+
       setDesc?.("Uploading Data... (0%)");
       publishProgress({
         phase: "uploading",
@@ -418,30 +448,54 @@ const UploadData = (props) => {
         message: `0/${totalUploadRows} rows uploaded`,
       });
 
-      for (const group of chunkPlan) {
+      const firstChunkJobs = chunkPlan.map((group) => {
         const [firstChunk, ...restChunks] = group.chunks;
+        return {
+          branchId: group.branchId,
+          totalRows: group.totalRows,
+          firstChunk,
+          restChunks,
+        };
+      });
 
-        const firstRes = await postChunk(group.branchId, firstChunk, true);
-        if (firstRes.status !== 200) throw new Error("Chunk failed");
-        uploadedRowsCount += firstChunk.length;
-        updateProgress(completedChunks + 1);
-
-        if (restChunks.length > 0) {
-          for (let i = 0; i < restChunks.length; i += CHUNK_CONCURRENCY) {
-            const parallelChunks = restChunks.slice(i, i + CHUNK_CONCURRENCY);
-            await Promise.all(
-              parallelChunks.map((chunk) =>
-                postChunk(group.branchId, chunk, false)
-              )
-            );
-            uploadedRowsCount += parallelChunks.reduce(
-              (sum, chunk) => sum + chunk.length,
-              0
-            );
-            updateProgress(completedChunks + parallelChunks.length);
-          }
+      await runWithConcurrency(
+        firstChunkJobs,
+        FIRST_CHUNK_CONCURRENCY,
+        async (job) => {
+          const firstRes = await postChunk(job.branchId, job.firstChunk, {
+            isFirstChunk: true,
+            isLastChunk: job.restChunks.length === 0,
+            totalRows: job.totalRows,
+          });
+          if (firstRes.status !== 200) throw new Error("Chunk failed");
+          markChunkAsUploaded(job.firstChunk.length);
         }
-      }
+      );
+
+      const restChunkJobs = firstChunkJobs.flatMap((job) => {
+        return job.restChunks.map((chunk, chunkIndex) => {
+          return {
+            branchId: job.branchId,
+            totalRows: job.totalRows,
+            chunk,
+            isLastChunk: chunkIndex === job.restChunks.length - 1,
+          };
+        });
+      });
+
+      await runWithConcurrency(
+        restChunkJobs,
+        GLOBAL_CHUNK_CONCURRENCY,
+        async (job) => {
+          const chunkRes = await postChunk(job.branchId, job.chunk, {
+            isFirstChunk: false,
+            isLastChunk: job.isLastChunk,
+            totalRows: job.totalRows,
+          });
+          if (chunkRes.status !== 200) throw new Error("Chunk failed");
+          markChunkAsUploaded(job.chunk.length);
+        }
+      );
 
       setDesc?.("");
 
