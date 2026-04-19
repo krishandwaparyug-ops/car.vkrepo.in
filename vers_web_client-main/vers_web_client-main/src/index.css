@@ -270,8 +270,15 @@ th {
 }
 
 .upload-sheet-toolbar {
-  background: linear-gradient(180deg, #fffdf8 0%, #fbf4e8 100%);
-  border: 1px solid #e5d8c5;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 255, 0.96)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(18, 54, 104, 0.03) 0,
+      rgba(18, 54, 104, 0.03) 8px,
+      transparent 8px,
+      transparent 16px
+    );
 }
 
 .upload-toolbar-controls {
@@ -290,43 +297,29 @@ th {
 }
 
 .upload-toolbar-action-text {
-  color: #8e1b1b !important;
+  color: #b42318 !important;
 }
 
 .upload-count-btn,
 .upload-verify-btn,
 .upload-cta-btn {
   min-height: 40px;
-  background: #ffffff !important;
-  color: #111111 !important;
-  border: 1px solid #1f1f1f !important;
-  box-shadow: none !important;
 }
 
 .upload-verify-btn:hover,
 .upload-cta-btn:hover {
-  background: #fff0ef !important;
-  border-color: #b91c1c !important;
-  color: #b91c1c !important;
   transform: none !important;
 }
 
 .upload-cta-btn:disabled {
-  background: #f6ecde !important;
-  color: #5c5248 !important;
-  border-color: #b8a895 !important;
-}
-
-.upload-count-btn {
-  background: #f4e8d8 !important;
+  opacity: 0.6;
 }
 
 .upload-sheet-panel {
   border-radius: 12px;
-  background: #ffffff;
+  background: #f7fbff;
   min-width: 0;
   height: calc(100vh - 210px);
-  border: 1px solid #dfd3c2;
 }
 
 .upload-sheet-workspace {
@@ -339,9 +332,9 @@ th {
 }
 
 .upload-match-panel {
-  border: 1px solid #decfba;
+  border: 1px solid #d7e3f7;
   border-radius: 12px;
-  background: linear-gradient(180deg, #fffefb 0%, #f8efe3 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   box-shadow: var(--shadow-soft);
   padding: 12px;
   height: calc(100vh - 210px);
@@ -356,13 +349,13 @@ th {
 .upload-match-title {
   margin: 0;
   font-size: 0.95rem;
-  color: #111111;
+  color: #173a68;
   font-weight: 800;
 }
 
 .upload-match-subtitle {
   margin: 4px 0 0;
-  color: #47413a;
+  color: #4c6487;
   font-size: 0.76rem;
   line-height: 1.35;
 }
@@ -385,15 +378,15 @@ th {
 }
 
 .upload-match-pill-info {
-  background: #f5ede2;
-  color: #111111;
-  border-color: #d5c4ae;
+  background: #e8f0ff;
+  color: #1e56ad;
+  border-color: #bdd1f8;
 }
 
 .upload-match-pill-ok {
-  background: #f5ede2;
-  color: #111111;
-  border-color: #d5c4ae;
+  background: #dcfce8;
+  color: #166534;
+  border-color: #86efac;
 }
 
 .upload-match-pill-warn {
@@ -421,8 +414,8 @@ th {
 }
 
 .upload-match-item-unmatched {
-  border: 1px solid #f3b2b2;
-  background: #fff3f3;
+  border: 1px solid #fecaca;
+  background: #fff1f1;
 }
 
 .upload-match-index {
@@ -448,9 +441,9 @@ th {
 
 .upload-match-success {
   margin: 0;
-  border: 1px solid #d5c4ae;
-  background: #f9f1e5;
-  color: #111111;
+  border: 1px solid #86efac;
+  background: #f0fdf4;
+  color: #166534;
   border-radius: 8px;
   padding: 10px;
   font-size: 0.78rem;
@@ -459,15 +452,15 @@ th {
 
 .upload-duplicate-box {
   margin-top: 10px;
-  border: 1px solid #f3caca;
-  background: #fff4f4;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
   border-radius: 8px;
   padding: 8px;
 }
 
 .upload-duplicate-title {
   margin: 0 0 6px;
-  color: #8e1b1b;
+  color: #92400e;
   font-size: 0.76rem;
   font-weight: 800;
 }
@@ -475,14 +468,14 @@ th {
 .upload-duplicate-list {
   margin: 0;
   padding-left: 16px;
-  color: #8e1b1b;
+  color: #92400e;
   font-size: 0.74rem;
   font-weight: 700;
 }
 
 .upload-match-empty {
   margin: 0;
-  color: #47413a;
+  color: #526887;
   font-size: 0.78rem;
   line-height: 1.35;
 }
@@ -498,14 +491,14 @@ th {
 }
 
 .upload-sheet-cell {
-  border: 1px solid #d3c7b7 !important;
+  border: 1px solid #cfd8e8 !important;
   background: #ffffff;
   padding: 0;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
 }
 
 .upload-sheet-cell-header {
-  background: linear-gradient(180deg, #fff8ee 0%, #f0e2cd 100%);
+  background: linear-gradient(180deg, #eef5ff 0%, #dbe8fb 100%);
 }
 
 .upload-sheet-input {
@@ -514,15 +507,15 @@ th {
   border-radius: 0 !important;
   box-shadow: none !important;
   background: #ffffff !important;
-  color: #111111;
+  color: #1d2a3f;
   font-family: "Calibri", "Segoe UI", sans-serif;
   font-size: 12px;
 }
 
 .upload-sheet-input:focus {
   border: none !important;
-  background: #fff7f7 !important;
-  box-shadow: inset 0 0 0 1px #b91c1c !important;
+  background: #eef6ff !important;
+  box-shadow: inset 0 0 0 1px #4c8bf5 !important;
 }
 
 @keyframes vkDotWave {

@@ -73,13 +73,11 @@ const BranchSelect = (props) => {
         placeholder={loadingBranch ? "Loading branches..." : "Search & select branch"}
         noDataLabel={loadingBranch ? "Loading branches..." : "No branches found"}
         style={{
-          minHeight: "40px",
+          minHeight: "32px",
           width: "100%",
-          fontSize: "15px",
+          fontSize: "16.5px",
           outline: "none",
-          border: "1px solid #2c2420",
-          background: "#fffdf8",
-          color: "#111111",
+          border: "none",
         }}
       />
     </div>
