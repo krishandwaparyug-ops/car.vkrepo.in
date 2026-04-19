@@ -100,18 +100,18 @@ const verifyDataWithRcOrChassis = (
   const verifiedValidData = [];
   const verifiedInvalidData = [];
   verifiedInvalidData.push(header);
-  data?.shift(0);
-  const dataLength = data.length;
+  const rows = Array.isArray(data) ? data.slice(1) : [];
+  const dataLength = rows.length;
   while (start < dataLength) {
     const end = Math.min(start + CHUNK_SIZE, dataLength);
     for (let i = start; i < end; i++) {
       let isValid = false;
-      const value = getOnlyNumAndChar(data[i][searchIndex]);
+      const value = getOnlyNumAndChar(rows[i][searchIndex]);
       isValid =
         type === "rc_no"
           ? validRcNumberByRegex(value)
           : validChassisNumber(value);
-      if (isValid) verifiedValidData.push(data[i]);
+      if (isValid) verifiedValidData.push(rows[i]);
       else {
         let isChanged = false;
         for (let j = 0; j < invalidRcRegexType.length; j++) {
@@ -120,7 +120,7 @@ const verifyDataWithRcOrChassis = (
               invalidRcRegexType[j].convertType,
               invalidRcRegexType[j].convertInto
             );
-            const newRecord = [...data[i]];
+            const newRecord = [...rows[i]];
             newRecord[searchIndex] = newRc;
             verifiedInvalidData.push(newRecord);
             isChanged = true;
@@ -128,7 +128,7 @@ const verifyDataWithRcOrChassis = (
           }
         }
         if (!isChanged) {
-          verifiedInvalidData.push(data[i]);
+          verifiedInvalidData.push(rows[i]);
         }
       }
     }
@@ -142,29 +142,29 @@ const verifyDataWithRCAndChassis = (rc_index, chassis_index, header, data) => {
   const verifiedValidData = [];
   const verifiedInvalidData = [];
   verifiedInvalidData.push(header);
-  data?.shift(0);
-  const dataLength = data.length;
+  const rows = Array.isArray(data) ? data.slice(1) : [];
+  const dataLength = rows.length;
   while (start < dataLength) {
     const end = Math.min(start + CHUNK_SIZE, dataLength);
     for (let i = start; i < end; i++) {
       let isValid = false;
       isValid =
-        validRcNumberByRegex(getOnlyNumAndChar(data[i][rc_index])) ||
-        validChassisNumber(getOnlyNumAndChar(data[i][chassis_index]));
-      if (isValid) verifiedValidData.push(data[i]);
+        validRcNumberByRegex(getOnlyNumAndChar(rows[i][rc_index])) ||
+        validChassisNumber(getOnlyNumAndChar(rows[i][chassis_index]));
+      if (isValid) verifiedValidData.push(rows[i]);
       else {
         let isChanged = false;
         for (let j = 0; j < invalidRcRegexType.length; j++) {
           if (
             invalidRcRegexType[j].valueType.test(
-              getOnlyNumAndChar(data[i][rc_index])
+              getOnlyNumAndChar(rows[i][rc_index])
             )
           ) {
-            const newRc = getOnlyNumAndChar(data[i][rc_index])?.replace(
+            const newRc = getOnlyNumAndChar(rows[i][rc_index])?.replace(
               invalidRcRegexType[j].convertType,
               invalidRcRegexType[j].convertInto
             );
-            const newRecord = [...data[i]];
+            const newRecord = [...rows[i]];
             newRecord[rc_index] = newRc;
             verifiedInvalidData.push(newRecord);
             isChanged = true;
@@ -172,7 +172,7 @@ const verifyDataWithRCAndChassis = (rc_index, chassis_index, header, data) => {
           }
         }
         if (!isChanged) {
-          verifiedInvalidData.push(data[i]);
+          verifiedInvalidData.push(rows[i]);
         }
       }
     }
@@ -188,50 +188,58 @@ const VerifyButton = (props) => {
     setVerifiedValidData,
     setIsVerifyBtnClick,
   } = props;
-
-  const [initialVerify, setInitialVerify] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const onHandleVerifyData = async (verifiedValidData, verifiedInvalidData) => {
-    setFileData((data) => []);
-    await new Promise((resolve) => setTimeout(resolve, 10));
     setVerifiedValidData?.((verifiedData) => [
       ...verifiedData,
       ...verifiedValidData,
     ]);
-    setFileData((data) => verifiedInvalidData);
+    setFileData(verifiedInvalidData);
     setIsVerifyBtnClick?.(true);
   };
 
   const handleVerify = async () => {
+    if (loading) {
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length < 2) {
+      notify("No records found to verify");
+      return;
+    }
+
     const header = data?.[0];
     setLoading(true);
-    const rc_index = findIndex(header, "rc_no");
-    const chassis_index = findIndex(header, "chassis_no");
-    if (rc_index >= 0 && chassis_index >= 0 && initialVerify) {
-      const { verifiedInvalidData, verifiedValidData } =
-        verifyDataWithRCAndChassis(rc_index, chassis_index, header, data);
-      onHandleVerifyData(verifiedValidData, verifiedInvalidData);
-    } else if (rc_index >= 0) {
-      setInitialVerify(true);
-      const { verifiedInvalidData, verifiedValidData } =
-        verifyDataWithRcOrChassis(rc_index, header, data);
-      onHandleVerifyData(verifiedValidData, verifiedInvalidData);
-    } else if (chassis_index >= 0) {
-      setInitialVerify(true);
-      const { verifiedInvalidData, verifiedValidData } =
-        verifyDataWithRcOrChassis(chassis_index, header, data, "chassis_no");
-      onHandleVerifyData(verifiedValidData, verifiedInvalidData);
-    } else {
-      notify("RC / Chassis no not found");
+    try {
+      const rc_index = findIndex(header, "rc_no");
+      const chassis_index = findIndex(header, "chassis_no");
+
+      if (rc_index >= 0 && chassis_index >= 0) {
+        const { verifiedInvalidData, verifiedValidData } =
+          verifyDataWithRCAndChassis(rc_index, chassis_index, header, data);
+        await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
+      } else if (rc_index >= 0) {
+        const { verifiedInvalidData, verifiedValidData } =
+          verifyDataWithRcOrChassis(rc_index, header, data);
+        await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
+      } else if (chassis_index >= 0) {
+        const { verifiedInvalidData, verifiedValidData } =
+          verifyDataWithRcOrChassis(chassis_index, header, data, "chassis_no");
+        await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
+      } else {
+        notify("RC / Chassis no not found");
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
     <button
       className="text-md pe-3 ps-3 h-full bg-gray-50 text-black border-0 rounded-sm flex justify-start items-center hover:bg-gray-200 upload-verify-btn"
       onClick={handleVerify}
+      disabled={loading}
     >
       {loading ? (
         <CgSpinner

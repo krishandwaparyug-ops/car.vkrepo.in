@@ -155,6 +155,16 @@ const Uploads = () => {
     };
   }, [defaultFileHeader, fileData, headerOptions]);
 
+  const invalidRowsCount = Math.max(
+    0,
+    Array.isArray(fileData) && fileData.length > 0 ? fileData.length - 1 : 0
+  );
+  const validRowsCount = Math.max(
+    0,
+    Array.isArray(verifiedValidData) ? verifiedValidData.length : 0
+  );
+  const totalRowsCount = validRowsCount + invalidRowsCount;
+
   const onDataChange = (props) => {
     const { rowIndex, colIndex, updatedValue } = props;
     const copyData = [...fileData];
@@ -273,15 +283,10 @@ const Uploads = () => {
         />
         {/* <CountButton label="Opening" data={`${count}`} /> */}
         <CountButton
-          data={`Total: ${fileData.length > 0
-              ? verifiedValidData.length + fileData.length - 1
-              : 0
-            }`}
+          data={`Total: ${totalRowsCount}`}
         />
-        <CountButton data={`Valid: ${verifiedValidData.length}`} />
-        <CountButton
-          data={`Invalid: ${fileData.length > 0 ? fileData.length - 1 : 0}`}
-        />
+        <CountButton data={`Valid: ${validRowsCount}`} />
+        <CountButton data={`Invalid: ${invalidRowsCount}`} />
         <VerifyButton
           data={fileData}
           setFileData={setFileData}
