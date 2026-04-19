@@ -184,18 +184,17 @@ const verifyDataWithRCAndChassis = (rc_index, chassis_index, header, data) => {
 const VerifyButton = (props) => {
   const {
     data = [],
+    verifiedValidData = [],
+    sourceTotalRows = 0,
     setFileData,
     setVerifiedValidData,
     setIsVerifyBtnClick,
   } = props;
   const [loading, setLoading] = useState(false);
 
-  const onHandleVerifyData = async (verifiedValidData, verifiedInvalidData) => {
-    setVerifiedValidData?.((verifiedData) => [
-      ...verifiedData,
-      ...verifiedValidData,
-    ]);
-    setFileData(verifiedInvalidData);
+  const onHandleVerifyData = async (nextVerifiedValidData, nextVerifiedInvalidData) => {
+    setVerifiedValidData?.(Array.isArray(nextVerifiedValidData) ? nextVerifiedValidData : []);
+    setFileData(Array.isArray(nextVerifiedInvalidData) ? nextVerifiedInvalidData : []);
     setIsVerifyBtnClick?.(true);
   };
 
@@ -210,6 +209,20 @@ const VerifyButton = (props) => {
     }
 
     const header = data?.[0];
+
+    const invalidRows = Array.isArray(data) ? data.slice(1) : [];
+    let previousValidRows = Array.isArray(verifiedValidData)
+      ? [...verifiedValidData]
+      : [];
+    const maxRows = Number(sourceTotalRows) > 0 ? Number(sourceTotalRows) : 0;
+
+    if (maxRows > 0 && previousValidRows.length + invalidRows.length > maxRows) {
+      const allowedPrevValidRows = Math.max(maxRows - invalidRows.length, 0);
+      previousValidRows = previousValidRows.slice(0, allowedPrevValidRows);
+    }
+
+    const rowsForVerification = [...previousValidRows, ...invalidRows];
+    const verificationDataset = [header, ...rowsForVerification];
     setLoading(true);
     try {
       const rc_index = findIndex(header, "rc_no");
@@ -217,15 +230,25 @@ const VerifyButton = (props) => {
 
       if (rc_index >= 0 && chassis_index >= 0) {
         const { verifiedInvalidData, verifiedValidData } =
-          verifyDataWithRCAndChassis(rc_index, chassis_index, header, data);
+          verifyDataWithRCAndChassis(
+            rc_index,
+            chassis_index,
+            header,
+            verificationDataset
+          );
         await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
       } else if (rc_index >= 0) {
         const { verifiedInvalidData, verifiedValidData } =
-          verifyDataWithRcOrChassis(rc_index, header, data);
+          verifyDataWithRcOrChassis(rc_index, header, verificationDataset);
         await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
       } else if (chassis_index >= 0) {
         const { verifiedInvalidData, verifiedValidData } =
-          verifyDataWithRcOrChassis(chassis_index, header, data, "chassis_no");
+          verifyDataWithRcOrChassis(
+            chassis_index,
+            header,
+            verificationDataset,
+            "chassis_no"
+          );
         await onHandleVerifyData(verifiedValidData, verifiedInvalidData);
       } else {
         notify("RC / Chassis no not found");

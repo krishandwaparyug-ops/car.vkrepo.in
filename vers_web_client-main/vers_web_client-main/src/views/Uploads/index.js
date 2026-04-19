@@ -66,6 +66,7 @@ const Uploads = () => {
   const [loading, setLoading] = useState(false);
   const [defaultFileHeader, setDefaultFileHeader] = useState([]);
   const [verifiedValidData, setVerifiedValidData] = useState([]);
+  const [sourceTotalRows, setSourceTotalRows] = useState(0);
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [headerOptions, setHeaderOptions] = useState([]);
   const [desc, setDesc] = useState(null);
@@ -157,13 +158,25 @@ const Uploads = () => {
 
   const invalidRowsCount = Math.max(
     0,
-    Array.isArray(fileData) && fileData.length > 0 ? fileData.length - 1 : 0
+    Math.max(
+      sourceTotalRows,
+      Array.isArray(fileData) && fileData.length > 0 ? fileData.length - 1 : 0
+    ) - Math.max(0, Array.isArray(verifiedValidData) ? verifiedValidData.length : 0)
   );
   const validRowsCount = Math.max(
     0,
-    Array.isArray(verifiedValidData) ? verifiedValidData.length : 0
+    Math.min(
+      Array.isArray(verifiedValidData) ? verifiedValidData.length : 0,
+      Math.max(
+        sourceTotalRows,
+        Array.isArray(fileData) && fileData.length > 0 ? fileData.length - 1 : 0
+      )
+    )
   );
-  const totalRowsCount = validRowsCount + invalidRowsCount;
+  const totalRowsCount = Math.max(
+    sourceTotalRows,
+    Array.isArray(fileData) && fileData.length > 0 ? fileData.length - 1 : 0
+  );
 
   const onDataChange = (props) => {
     const { rowIndex, colIndex, updatedValue } = props;
@@ -278,6 +291,7 @@ const Uploads = () => {
           setDefaultFileHeader={setDefaultFileHeader}
           setFileData={setFileData}
           setVerifiedValidData={setVerifiedValidData}
+          setSourceTotalRows={setSourceTotalRows}
           setRawFile={setRawFile}
           setIsVerifyClicked={setIsVerifyClicked}
         />
@@ -289,6 +303,8 @@ const Uploads = () => {
         <CountButton data={`Invalid: ${invalidRowsCount}`} />
         <VerifyButton
           data={fileData}
+          verifiedValidData={verifiedValidData}
+          sourceTotalRows={sourceTotalRows}
           setFileData={setFileData}
           setVerifiedValidData={setVerifiedValidData}
           setIsVerifyBtnClick={setIsVerifyClicked}

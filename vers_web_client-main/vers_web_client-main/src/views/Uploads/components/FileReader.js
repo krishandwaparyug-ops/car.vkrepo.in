@@ -52,6 +52,7 @@ const FileReader = (props) => {
     setFileData,
     setDefaultFileHeader,
     setVerifiedValidData,
+    setSourceTotalRows,
     setLoading,
     setRawFile,
     setIsVerifyClicked,
@@ -64,6 +65,7 @@ const FileReader = (props) => {
     }
     setFileData?.([]);
     setVerifiedValidData?.([]);
+    setSourceTotalRows?.(0);
     setIsVerifyClicked?.(false);
     setLoading?.(true);
     setRawFile?.(file);
@@ -83,9 +85,11 @@ const FileReader = (props) => {
           setLoading?.(false);
           setFileData?.(rows);
           setDefaultFileHeader?.(getDefaultHeaderFromRows(rows));
+          setSourceTotalRows?.(Math.max(0, rows.length - 1));
         },
         error: (err) => {
           setLoading?.(false);
+          setSourceTotalRows?.(0);
           console.error("CSV Parse Error", err);
         },
       });
@@ -128,8 +132,10 @@ const FileReader = (props) => {
         setLoading?.(false);
         setFileData?.(normalizedRows);
         setDefaultFileHeader?.(getDefaultHeaderFromRows(normalizedRows));
+        setSourceTotalRows?.(Math.max(0, normalizedRows.length - 1));
       } catch (error) {
         setLoading?.(false);
+        setSourceTotalRows?.(0);
         console.error("Excel Parsing Error:", error);
       }
     };
