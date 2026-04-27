@@ -27,6 +27,11 @@ const pagesRoute = [
         component: React.lazy(() => import('../../views/Uploads'))
     },
     {
+        key: 'upload-excel',
+        path: `/upload/excel`,
+        component: React.lazy(() => import('../../views/Uploads/ExcelEditor'))
+    },
+    {
         key: 'user',
         path: `/user`,
         component: React.lazy(() => import('../../views/User'))

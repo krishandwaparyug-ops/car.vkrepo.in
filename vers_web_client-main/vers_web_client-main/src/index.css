@@ -554,3 +554,7 @@ th {
     max-height: 260px;
   }
 }
+
+.react-contextmenu { z-index: 9999 !important; background-color: white; border: 1px solid #ccc; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 4px; padding: 4px 0; }
+.react-contextmenu-item { padding: 8px 12px; cursor: pointer; }
+.react-contextmenu-item:hover { background-color: #f3f4f6; }

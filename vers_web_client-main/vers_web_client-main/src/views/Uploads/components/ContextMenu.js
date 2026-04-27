@@ -1,49 +1,75 @@
-import React, { useState } from "react";
-import {
-  ContextMenuTrigger,
-  ContextMenu,
-  ContextMenuItem,
-} from "rctx-contextmenu";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const CustomContextMenu = ({
   children,
   options = [],
   colIndex,
   rowIndex,
-  onDeleteData,
 }) => {
-  const [id] = useState(
-    `${colIndex}${rowIndex}${Math.random()}${new Date().getMilliseconds()}`
-  );
+  const [visible, setVisible] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleOutside = (event) => {
+      // Hide menu if clicking outside of it
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setVisible(false);
+      }
+    };
+
+    // Use mousedown and contextmenu to catch clicks immediately
+    if (visible) {
+      document.addEventListener("mousedown", handleOutside);
+      document.addEventListener("contextmenu", handleOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("contextmenu", handleOutside);
+    };
+  }, [visible]);
+
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent multiple menus from opening
+    setVisible(true);
+    setPosition({ x: e.clientX, y: e.clientY });
+  };
+
   return (
-    <>
-      <ContextMenuTrigger id={`context-menu-${id}`} className="h-full">
-        {children}
-      </ContextMenuTrigger>
-      <ContextMenu
-        hideOnLeave={true}
-        id={`context-menu-${id}`}
-        className="!shadow-sm !p-0"
-        appendTo="body"
-      >
-        {options.map((menu, index) => {
-          return (
-            <ContextMenuItem
-              disabled={menu?.disabled || false}
-              preventClose={true}
-              disableWhileShiftPressed={true}
+    <div onContextMenu={handleContextMenu} className="h-full w-full">
+      {children}
+      {visible && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed bg-white border border-gray-200 rounded-md shadow-lg z-[99999] py-1 min-w-[150px]"
+          style={{ top: position.y, left: position.x }}
+          onContextMenu={(e) => e.preventDefault()} // Prevent right clicking the menu itself
+        >
+          {options.map((menu, index) => (
+            <div
               key={menu.name}
-              onClick={() => {
-                menu?.onclick({ menu, optionIndex: index, rowIndex, colIndex });
+              className={`px-4 py-2 text-sm font-medium ${
+                menu.disabled
+                  ? "text-gray-400 cursor-not-allowed"
+                  : "text-gray-800 hover:bg-blue-50 cursor-pointer"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!menu.disabled) {
+                  menu?.onclick({ menu, optionIndex: index, rowIndex, colIndex });
+                  setVisible(false);
+                }
               }}
-              className="!p-1 !ps-3 !cursor-default hover:bg-slate-50"
             >
               {menu.name}
-            </ContextMenuItem>
-          );
-        })}
-      </ContextMenu>
-    </>
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
+    </div>
   );
 };
 

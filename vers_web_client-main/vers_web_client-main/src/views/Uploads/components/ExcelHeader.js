@@ -156,12 +156,13 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
     >
       <div
         style={{
-          background: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+          background: "#fff", borderRadius: 4, boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
           minWidth: 320, maxWidth: 400, width: "90%", padding: "20px 20px 12px 20px",
           display: "flex", flexDirection: "column", maxHeight: "80vh",
+          border: "2px solid #000"
         }}
         onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 10, color: "#1c3a63" }}>
+        <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 10, color: "#000" }}>
           Select Column Field
         </div>
         <input
@@ -171,8 +172,9 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           style={{
-            border: "1px solid #c7d8f0", borderRadius: 6, padding: "6px 10px",
-            fontSize: 13, marginBottom: 10, outline: "none", width: "100%",
+            border: "1px solid #000", borderRadius: 4, padding: "8px 10px",
+            fontSize: 14, marginBottom: 10, outline: "none", width: "100%",
+            color: "#000"
           }}
         />
         <div style={{ overflowY: "auto", flex: 1 }}>
@@ -180,10 +182,10 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
           <div
             onClick={() => { onSelect(""); }}
             style={{
-              padding: "7px 10px", borderRadius: 5, cursor: "pointer",
-              fontSize: 13, color: "#888", marginBottom: 2,
+              padding: "7px 10px", borderRadius: 0, cursor: "pointer",
+              fontSize: 13, color: "#555", marginBottom: 2, borderBottom: "1px solid #eee"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "#f0f4fb"}
+            onMouseEnter={(e) => e.currentTarget.style.background = "#f5f5f5"}
             onMouseLeave={(e) => e.currentTarget.style.background = ""}
           >
             — Ignore this column —
@@ -197,7 +199,16 @@ const HeaderPickerDialog = ({ headerOptions, header, onSelect, onClose, searchTe
                 key={idx}
                 onClick={() => { if (!alreadyUsed) onSelect(key); }}
                 style={{
-                  padding: "7px 10px", borderRadius: 5,
+                  padding: "7px 10px", borderRadius: 0,
+                  cursor: alreadyUsed ? "not-allowed" : "pointer",
+                  fontSize: 13, color: alreadyUsed ? "#aaa" : "#000",
+                  marginBottom: 2,
+                  display: "flex", justifyContent: "space-between",
+                  borderBottom: "1px solid #eee"
+                }}
+                onMouseEnter={(e) => { if (!alreadyUsed) e.currentTarget.style.background = "#fff3e0"; e.currentTarget.style.color = "#f97316"; }}
+                onMouseLeave={(e) => { if (!alreadyUsed) e.currentTarget.style.background = ""; e.currentTarget.style.color = "#000"; }}
+              >
                   cursor: alreadyUsed ? "not-allowed" : "pointer",
                   fontSize: 13, fontWeight: 500,
                   color: alreadyUsed ? "#bbb" : "#1c3a63",
